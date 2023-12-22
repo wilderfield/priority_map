@@ -5,7 +5,7 @@
 #include <iterator>
 
 
-namespace leetcode {
+namespace bryan {
 
 template<typename KeyType, typename ValType, typename Compare = std::less<ValType>>
 class priority_map {
