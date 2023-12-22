@@ -1,2 +1,12 @@
 # priority_map
-Implementing priority_map template class in C++
+Implementing a priority map in C++
+
+# compile test
+```
+g++ -std=c++14 -O3 main.cpp
+```
+
+# run
+```
+./a.out
+```
