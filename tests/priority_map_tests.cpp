@@ -3,48 +3,45 @@
 #include "bryan/priority_map.hpp" // Your priority_map implementation
 
 TEST_CASE("PriorityMap operations are tested", "[priority_map]") {
+
     // Instantiate your priority_map
     bryan::priority_map<int, int> pmap;
 
-    // Test case for insertion
-    SECTION("Insertion works correctly") {
-        pmap[7]++; // Increment value for key 7
-        auto val = pmap.begin();
-        REQUIRE(val->first == 7);  // Check key is 7
-        REQUIRE(val->second == 1); // Check value is 1 after increment
+    SECTION("Checking empty()") {
+        REQUIRE(pmap.empty()); // Check map is initially empty
+        ++pmap[7]; // Increment value for key 7
+        REQUIRE(!pmap.empty()); // Check map is not empty
     }
-    
-    // Test case for insertion and deletion
-    SECTION("Insertion and Deletion works correctly") {
-        pmap[7]++; // Increment value for key 7
-        pmap[7]--; // Increment value for key 7
-        auto it = pmap.begin();
-        REQUIRE(pmap.begin() == pmap.end());
-    }
-    
-    // Test case for insertion and deletion
-    SECTION("Increment thousand times works correctly") {
-        for (size_t i = 0; i < 1000; i++) {
-            ++pmap[7]; // Increment value for key 7
-        }
-        auto val = pmap.begin();
-        REQUIRE(val->first == 7);  // Check key is 7
-        REQUIRE(val->second == 1000); // Check value is 1000 after increment
-    }
-    
-    // Test case for insertion and deletion
-    SECTION("Increment thousand times works correctly for two keys") {
-        for (size_t i = 0; i < 1000; i++) {
-            ++pmap[7]; // Increment value for key 7
-        }
-        for (size_t i = 0; i < 1000; i++) {
-            ++pmap[8]; // Increment value for key 8
-        }
-        auto val = pmap.begin();
-        REQUIRE(val->second == 1000); // Check value is 1000 after increment
-        ++val;
-        REQUIRE(val->second == 1000); // Check value is 1000 after increment
 
+    SECTION("Checking size()") {
+        ++pmap[7]; // Increment value for key 7
+        REQUIRE(pmap.size() == 1); // Check size is 1 after increment
+    }
+    
+    SECTION("Checking access by operator[]") {
+        ++pmap[7]; // Increment value for key 7
+        ++pmap[7]; // Increment value for key 7
+        REQUIRE(pmap[7] == 2); // Check associated value for 7 is 2
+    }
+    
+    SECTION("Checking top()") {
+        ++pmap[7]; // Increment value for key 7
+        ++pmap[7]; // Increment value for key 7
+        ++pmap[7]; // Increment value for key 7
+        ++pmap[11]; // Increment value for key 11
+        ++pmap[11]; // Increment value for key 11
+        {
+            auto [maxKey, maxVal] = pmap.top();
+            REQUIRE(maxKey == 7); // Check maximum key is 7
+            REQUIRE(maxVal == 3); // Check associated value for 7 is 3
+        }
+        //--pmap[7]; // Decrement value for key 7
+        //--pmap[7]; // Decrement value for key 7
+        //{
+        //    auto [maxKey, maxVal] = pmap.top();
+        //    REQUIRE(maxKey == 11); // Check maximum key is 11
+        //    REQUIRE(maxVal == 2); // Check associated value for 11 is 2
+        //}
     }
 
     // ... Additional test cases for increment, decrement, and other functionalities

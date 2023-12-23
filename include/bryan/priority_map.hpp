@@ -4,10 +4,14 @@
 #include <unordered_set>
 #include <iterator>
 
-
 namespace bryan {
 
-template<typename KeyType, typename ValType, typename Compare = std::less<ValType>>
+template<
+    typename KeyType,
+    typename ValType,
+    typename Compare = std::greater<ValType>,
+    typename Hash = std::hash<KeyType>
+>
 class priority_map {
 
 static_assert(std::is_arithmetic<ValType>::value, "ValType must be a numeric type.");
@@ -20,18 +24,30 @@ private:
     };
 
     // List to maintain nodes sorted by value.
-    std::list<Node> nodeList;
+    std::list<Node> nodeList_;
 
     // Map from keys to their corresponding node iterator in nodeList.
-    std::unordered_map<KeyType, typename std::list<Node>::iterator> keyToNode;
+    std::unordered_map<KeyType, typename std::list<Node>::iterator, Hash> keyToNode_;
 
     // Increment the value associated with a key.
     void increment(KeyType key);
-    
+
     // Decrement the value associated with a key.
     void decrement(KeyType key);
 
+    // Get the value associated with a key.
+    ValType getVal(const KeyType& key) const;
+
 public:
+
+    size_t size() const;
+    bool empty() const;
+
+    std::pair<KeyType, ValType> top() const;
+
+    class Proxy;
+    Proxy operator[](const KeyType& key);
+
     // Proxy class to handle the increment operation.
     class Proxy {
     private:
@@ -45,273 +61,244 @@ public:
         Proxy operator++(int);
         Proxy& operator--();
         Proxy operator--(int);
+
+	operator ValType() const; // Implicit conversion for access to val
     };
 
-    // Iterator class to iterate through the priority_map.
-    class Iterator {
-    private:
-        typedef typename std::list<Node>::iterator NodeListIterator;
-        typedef typename std::unordered_set<KeyType>::iterator KeySetIterator;
-
-        NodeListIterator nodeListIt, endIt;
-        KeySetIterator keySetIt;
-        std::pair<KeyType, ValType> currentPair;
-
-    public:
-        Iterator(NodeListIterator nodeListIt, KeySetIterator keySetIt, NodeListIterator endIt)
-            : nodeListIt(nodeListIt), keySetIt(keySetIt), endIt(endIt) {
-            if (nodeListIt != endIt) {
-                currentPair = {*keySetIt, nodeListIt->val};
-            }
-        }
-
-        Iterator& operator++();
-        bool operator==(const Iterator& other) const;
-        bool operator!=(const Iterator& other) const;
-        const std::pair<KeyType, ValType>& operator*() const;
-        const std::pair<KeyType, ValType>* operator->() const;
-    };
-
-    // ReverseIterator class for reverse iteration.
-    class ReverseIterator {
-        typedef typename std::list<Node>::reverse_iterator NodeListReverseIterator;
-        typedef typename std::unordered_set<KeyType>::iterator KeySetReverseIterator;
-
-        NodeListReverseIterator nodeListIt, rendIt;
-        KeySetReverseIterator keySetIt;
-        std::pair<KeyType, ValType> currentPair;
-
-    public:
-        ReverseIterator(NodeListReverseIterator nodeListIt, KeySetReverseIterator keySetIt, NodeListReverseIterator rendIt)
-            : nodeListIt(nodeListIt), keySetIt(keySetIt), rendIt(rendIt) {
-            if (nodeListIt != rendIt) {
-                currentPair = {*keySetIt, nodeListIt->val};
-            }
-        }
-
-        ReverseIterator& operator++();
-        bool operator==(const ReverseIterator& other) const;
-        bool operator!=(const ReverseIterator& other) const;
-        const std::pair<KeyType, ValType>& operator*() const;
-        const std::pair<KeyType, ValType>* operator->() const;
-    };
-
-    Proxy operator[](const KeyType& key);
-    Iterator begin();
-    Iterator end();
-    ReverseIterator rbegin();
-    ReverseIterator rend();
 };
 
 // Implementation of priority_map methods
-template<typename KeyType, typename ValType, typename Compare>
-void priority_map<KeyType, ValType, Compare>::increment(KeyType key) {
-   
-   auto nodeIt = keyToNode[key];
-   auto nextNodeIt = std::next(nodeIt);
+
+template<
+    typename KeyType,
+    typename ValType,
+    typename Compare,
+    typename Hash
+>
+size_t priority_map<KeyType, ValType, Compare, Hash>::size() const {
+  return keyToNode_.size();
+}
+
+template<
+    typename KeyType,
+    typename ValType,
+    typename Compare,
+    typename Hash
+>
+bool priority_map<KeyType, ValType, Compare, Hash>::empty() const {
+  return keyToNode_.empty();
+}
+
+template<
+    typename KeyType,
+    typename ValType,
+    typename Compare,
+    typename Hash
+>
+std::pair<KeyType, ValType> priority_map<KeyType, ValType, Compare, Hash>::top() const {
+    if (nodeList_.empty()) {
+        throw std::out_of_range("Can't access top on an empty priority_map.");
+    }
+    const auto& node = nodeList_.front();
+    if (node.keys.empty()) {
+        throw std::logic_error("Inconsistent state: Node with no keys.");
+    }
+    // Return a pair consisting of one of the keys and the value.
+    return {*(node.keys.begin()), node.val};
+}
+
+template<
+    typename KeyType,
+    typename ValType,
+    typename Compare,
+    typename Hash
+>
+void priority_map<KeyType, ValType, Compare, Hash>::increment(KeyType key) {
+
+   auto nodeIt = keyToNode_[key];
+
+   ValType oldVal = nodeIt->val;
 
    // Increment the value
-   ValType newVal = nodeIt->val + 1;
+   ValType newVal = oldVal + 1;
+
+   Compare comp;
+
+   auto nextNodeIt = comp(oldVal, newVal) ? std::next(nodeIt) : std::prev(nodeIt);
 
    // Remove the key from the current node
    nodeIt->keys.erase(key);
 
    // Check if we need to create a new node or use the next node
-   if (nextNodeIt == nodeList.end() || nextNodeIt->val != newVal) {
+   if (nextNodeIt == nodeList_.end() || nextNodeIt->val != newVal) {
        // Insert a new node with the incremented value
-       nextNodeIt = nodeList.insert(nextNodeIt, {newVal, {}});
+       nextNodeIt = nodeList_.insert(nextNodeIt, {newVal, {}});
    }
 
    // Add the key to the next node
    nextNodeIt->keys.insert(key);
 
    // Update the map
-   keyToNode[key] = nextNodeIt;
+   keyToNode_[key] = nextNodeIt;
 
    // Remove the old node if it's empty
    if (nodeIt->keys.empty()) {
-       nodeList.erase(nodeIt);
+       nodeList_.erase(nodeIt);
    }
 }
 
-template<typename KeyType, typename ValType, typename Compare>
-void priority_map<KeyType, ValType, Compare>::decrement(KeyType key) {
-    auto nodeIt = keyToNode.find(key);
-    if (nodeIt == keyToNode.end()) {
+template<
+    typename KeyType,
+    typename ValType,
+    typename Compare,
+    typename Hash
+>
+void priority_map<KeyType, ValType, Compare, Hash>::decrement(KeyType key) {
+    auto nodeIt = keyToNode_.find(key);
+    if (nodeIt == keyToNode_.end()) {
         // Handle error or create a new entry with the lowest value
         return; // Or throw an exception, or handle as per the requirement
     }
 
     auto current_nodeIt = nodeIt->second;
-    auto prevNodeIt = (current_nodeIt != nodeList.begin()) ? std::prev(current_nodeIt) : nodeList.end();
 
+    ValType oldVal = current_nodeIt->val;
     // Decrement the value
-    ValType newVal = current_nodeIt->val - 1;
+    ValType newVal = oldVal - 1;
+
+    auto prevNodeIt = nodeList_.end();
+
+    Compare comp;
+
+    if (current_nodeIt != nodeList_.begin()) {
+       if (comp(oldVal, newVal)) {
+           prevNodeIt = std::prev(current_nodeIt);
+       }
+       else {
+           prevNodeIt = std::next(current_nodeIt);
+       }
+    }
 
     // Remove the key from the current node
     current_nodeIt->keys.erase(key);
+
+    // Remove the current mapping
+    keyToNode_.erase(key);
 
     // Don't reinsert key if we have decremented it to zero
     if (newVal > 0) {
 
         // Check if we need to create a new node or use the previous node
-        if (prevNodeIt == nodeList.end() || prevNodeIt->val != newVal) {
+        if (prevNodeIt == nodeList_.end() || prevNodeIt->val != newVal) {
             // Insert a new node with the decremented value before the current
-            prevNodeIt = nodeList.insert(current_nodeIt, {newVal, {}});
+            prevNodeIt = nodeList_.insert(current_nodeIt, {newVal, {}});
         }
 
         // Add the key to the previous node
         prevNodeIt->keys.insert(key);
 
         // Update the map
-        keyToNode[key] = prevNodeIt;
+        keyToNode_[key] = prevNodeIt;
     }
 
     // Remove the old node if it's empty
     if (current_nodeIt->keys.empty()) {
-        nodeList.erase(current_nodeIt);
+        nodeList_.erase(current_nodeIt);
     }
 }
 
-template<typename KeyType, typename ValType, typename Compare>
-typename priority_map<KeyType, ValType, Compare>::Proxy priority_map<KeyType, ValType, Compare>::operator[](const KeyType& key) {
-    if (keyToNode.find(key) == keyToNode.end()) {
+template<
+    typename KeyType,
+    typename ValType,
+    typename Compare,
+    typename Hash
+>
+ValType priority_map<KeyType, ValType, Compare, Hash>::getVal(const KeyType& key) const {
+    auto it = keyToNode_.find(key); // Try to find the key in the map.
+    if (it != keyToNode_.end()) {
+        // If found, return the associated value.
+        return it->second->val; // Assuming 'second' is an iterator to the list of Nodes.
+    } else {
+        // If not found, handle the missing key. Options include:
+        // Option 1: Throw an exception.
+        throw std::out_of_range("Key not found in priority_map.");
+
+        // Option 2: Return a default value for ValType.
+        // return ValType{};
+    }
+}
+
+
+template<
+    typename KeyType,
+    typename ValType,
+    typename Compare,
+    typename Hash
+>
+typename priority_map<KeyType, ValType, Compare, Hash>::Proxy priority_map<KeyType, ValType, Compare, Hash>::operator[](const KeyType& key) {
+    if (keyToNode_.find(key) == keyToNode_.end()) {
         // If the key doesn't exist, create a new node with value 0
-        nodeList.push_front({ValType{}, {key}});
-        keyToNode[key] = nodeList.begin();
+        nodeList_.push_front({ValType{}, {key}});
+        keyToNode_[key] = nodeList_.begin();
     }
     return Proxy(this, key);
 }
 
 // Implementations of Proxy methods
-template<typename KeyType, typename ValType, typename Compare>
-typename priority_map<KeyType, ValType, Compare>::Proxy& priority_map<KeyType, ValType, Compare>::Proxy::operator++() {
+template<
+    typename KeyType,
+    typename ValType,
+    typename Compare,
+    typename Hash
+>
+typename priority_map<KeyType, ValType, Compare, Hash>::Proxy& priority_map<KeyType, ValType, Compare, Hash>::Proxy::operator++() {
     pm->increment(key);
     return *this;
 }
 
-template<typename KeyType, typename ValType, typename Compare>
-typename priority_map<KeyType, ValType, Compare>::Proxy priority_map<KeyType, ValType, Compare>::Proxy::operator++(int) {
+template<
+    typename KeyType,
+    typename ValType,
+    typename Compare,
+    typename Hash
+>
+typename priority_map<KeyType, ValType, Compare, Hash>::Proxy priority_map<KeyType, ValType, Compare, Hash>::Proxy::operator++(int) {
     Proxy temp = *this;
     ++(*this);
     return temp;
 }
 
-template<typename KeyType, typename ValType, typename Compare>
-typename priority_map<KeyType, ValType, Compare>::Proxy& priority_map<KeyType, ValType, Compare>::Proxy::operator--() {
+template<
+    typename KeyType,
+    typename ValType,
+    typename Compare,
+    typename Hash
+>
+typename priority_map<KeyType, ValType, Compare, Hash>::Proxy& priority_map<KeyType, ValType, Compare, Hash>::Proxy::operator--() {
     pm->decrement(key);
     return *this;
 }
 
-template<typename KeyType, typename ValType, typename Compare>
-typename priority_map<KeyType, ValType, Compare>::Proxy priority_map<KeyType, ValType, Compare>::Proxy::operator--(int) {
+template<
+    typename KeyType,
+    typename ValType,
+    typename Compare,
+    typename Hash
+>
+typename priority_map<KeyType, ValType, Compare, Hash>::Proxy priority_map<KeyType, ValType, Compare, Hash>::Proxy::operator--(int) {
     Proxy temp = *this;
     --(*this);
     return temp;
 }
-    
-// Implementations of Iterator methods
-template<typename KeyType, typename ValType, typename Compare>
-typename priority_map<KeyType, ValType, Compare>::Iterator& priority_map<KeyType, ValType, Compare>::Iterator::operator++() {
-    if (nodeListIt != endIt) {
-        ++keySetIt;
-        if (keySetIt == nodeListIt->keys.end()) {
-            ++nodeListIt;
-            if (nodeListIt != endIt) {
-                keySetIt = nodeListIt->keys.begin();
-            }
-        }
-        // Update Current Pair
-        if (nodeListIt != endIt) {
-            currentPair = {*keySetIt, nodeListIt->val};
-        }
-    }
-    return *this;
-}
 
-template<typename KeyType, typename ValType, typename Compare>
-bool priority_map<KeyType, ValType, Compare>::Iterator::operator!=(const Iterator& other) const {
-    return nodeListIt != other.nodeListIt || (nodeListIt != endIt && keySetIt != other.keySetIt);
-}
-
-template<typename KeyType, typename ValType, typename Compare>
-bool priority_map<KeyType, ValType, Compare>::Iterator::operator==(const Iterator& other) const {
-    return nodeListIt == other.nodeListIt && (nodeListIt == endIt || keySetIt == other.keySetIt);
-}
-
-template<typename KeyType, typename ValType, typename Compare>
-const std::pair<KeyType, ValType>& priority_map<KeyType, ValType, Compare>::Iterator::operator*() const {
-    return currentPair;
-}
-
-template<typename KeyType, typename ValType, typename Compare>
-const std::pair<KeyType, ValType>* priority_map<KeyType, ValType, Compare>::Iterator::operator->() const {
-    return &currentPair;
-}
-
-template<typename KeyType, typename ValType, typename Compare>
-typename priority_map<KeyType, ValType, Compare>::Iterator priority_map<KeyType, ValType, Compare>::begin() {
-    if (nodeList.empty()) {
-        return end();
-    }
-    return Iterator(nodeList.begin(), nodeList.begin()->keys.begin(), nodeList.end());
-}
-
-template<typename KeyType, typename ValType, typename Compare>
-typename priority_map<KeyType, ValType, Compare>::Iterator priority_map<KeyType, ValType, Compare>::end() {
-    return Iterator(nodeList.end(), {}, nodeList.end());
-}
-
-template<typename KeyType, typename ValType, typename Compare>
-typename priority_map<KeyType, ValType, Compare>::ReverseIterator& priority_map<KeyType, ValType, Compare>::ReverseIterator::operator++() {
-    if (nodeListIt != rendIt) {
-        ++keySetIt;
-        if (keySetIt == nodeListIt->keys.end()) {
-            ++nodeListIt;
-            if (nodeListIt != rendIt) {
-                keySetIt = nodeListIt->keys.begin();
-            }
-        }
-        // Update Current Pair
-        if (nodeListIt != rendIt) {
-            currentPair = {*keySetIt, nodeListIt->val};
-        }
-    }
-    return *this;
-}
-
-template<typename KeyType, typename ValType, typename Compare>
-bool priority_map<KeyType, ValType, Compare>::ReverseIterator::operator!=(const ReverseIterator& other) const {
-    return nodeListIt != other.nodeListIt || (nodeListIt != rendIt && keySetIt != other.keySetIt);
-}
-
-template<typename KeyType, typename ValType, typename Compare>
-bool priority_map<KeyType, ValType, Compare>::ReverseIterator::operator==(const ReverseIterator& other) const {
-    return nodeListIt == other.nodeListIt && (nodeListIt == rendIt || keySetIt == other.keySetIt);
-}
-
-template<typename KeyType, typename ValType, typename Compare>
-const std::pair<KeyType, ValType>& priority_map<KeyType, ValType, Compare>::ReverseIterator::operator*() const {
-    return currentPair;
-}
-
-template<typename KeyType, typename ValType, typename Compare>
-const std::pair<KeyType, ValType>* priority_map<KeyType, ValType, Compare>::ReverseIterator::operator->() const {
-    return &currentPair;
-}
-
-template<typename KeyType, typename ValType, typename Compare>
-typename priority_map<KeyType, ValType, Compare>::ReverseIterator priority_map<KeyType, ValType, Compare>::rbegin() {
-    if (nodeList.empty()) {
-        return rend();
-    }
-    auto lastNodeIt = nodeList.rbegin();
-    return ReverseIterator(lastNodeIt, lastNodeIt->keys.begin(), nodeList.rend());
-}
-
-template<typename KeyType, typename ValType, typename Compare>
-typename priority_map<KeyType, ValType, Compare>::ReverseIterator priority_map<KeyType, ValType, Compare>::rend() {
-    return ReverseIterator(nodeList.rend(), {}, nodeList.rend());
+template<
+    typename KeyType,
+    typename ValType,
+    typename Compare,
+    typename Hash
+>
+priority_map<KeyType, ValType, Compare, Hash>::Proxy::operator ValType() const {
+    return pm->getVal(key);
 }
 
 } // namespace
