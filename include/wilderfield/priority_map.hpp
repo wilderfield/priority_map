@@ -281,13 +281,45 @@ typename priority_map<KeyType, ValType, Compare, Hash>::Proxy priority_map<KeyTy
 
         Compare comp;
 
+        // True if Compare is std::less
         if (comp(0,1)) {
-            nodeList_.push_front({ValType{}, {key}});
-            keyToNode_[key] = nodeList_.begin();
+
+            auto insertionPoint = std::find_if(nodeList_.begin(), nodeList_.end(),
+            [&](const auto& node) {
+                return node.val >= 0;
+            });
+
+            if (insertionPoint != nodeList_.end() && insertionPoint->val == 0) {
+                insertionPoint->keys.insert(key);
+            }
+            else {
+                insertionPoint = nodeList_.insert(insertionPoint, {0, {key}});
+            }
+            
+            keyToNode_[key] = insertionPoint;
+
         }
         else {
-            nodeList_.push_back({ValType{}, {key}});
-            keyToNode_[key] = std::prev(nodeList_.end());
+            auto insertionPoint = std::find_if(nodeList_.rbegin(), nodeList_.rend(),
+            [&](const auto& node) {
+                return node.val >= 0;
+            });
+
+            if (insertionPoint != nodeList_.rend() && insertionPoint->val == 0) {
+                insertionPoint->keys.insert(key);
+                keyToNode_[key] = insertionPoint.base();
+            }
+            else if (insertionPoint == nodeList_.rend()) {
+                auto newNodeIt = nodeList_.insert(nodeList_.begin(), {0, {key}});
+                keyToNode_[key] = newNodeIt;
+
+            }
+            else {
+                auto newNodeIt = nodeList_.insert(std::prev(insertionPoint.base()), {0, {key}});
+                keyToNode_[key] = newNodeIt;
+            }
+            
+
         }
 
     }
