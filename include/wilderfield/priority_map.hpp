@@ -20,7 +20,7 @@ private:
     // Node structure representing a value and the set of keys associated with this value.
     struct Node {
         ValType val;
-        std::unordered_set<KeyType> keys;
+        std::unordered_set<KeyType, Hash> keys;
     };
 
     // List to maintain nodes sorted by value.

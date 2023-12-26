@@ -165,7 +165,7 @@ TEST_CASE("PriorityMap operations are tested", "[priority_map]") {
 	bool valid = false;
         for (auto& gr : golden) {
             if (topological == gr) {
-                valid = true;
+                valid |= true;
             }
         }
 
