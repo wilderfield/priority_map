@@ -17,6 +17,8 @@ class priority_map {
 static_assert(std::is_arithmetic<ValType>::value, "ValType must be a numeric type.");
 
 private:
+    Compare comp_;
+
     // Node structure representing a value and the set of keys associated with this value.
     struct Node {
         ValType val;
@@ -161,13 +163,11 @@ void priority_map<KeyType, ValType, Compare, Hash>::increment(KeyType key) {
     // Increment the value
     ValType newVal = oldVal + 1;
 
-    Compare comp; // Does this have performance hit? Maybe optimize.
-
     // This will evaluate true it std::less is used
     // If std::less is used we mimic a minheap
     // The key with the lowest val will be at the head of the linked list
     // We insert nodes towards the tail of the LL
-    if (comp(oldVal, newVal)) {
+    if (comp_(oldVal, newVal)) {
 
 
         auto nextNodeIt = std::next(nodeIt);
@@ -234,10 +234,8 @@ void priority_map<KeyType, ValType, Compare, Hash>::decrement(KeyType key) {
     // Decrement the value
     ValType newVal = oldVal - 1;
 
-    Compare comp; // Does this have performance hit? Maybe optimize.
-
     // This will evaluate true if std::greater is used
-    if (comp(oldVal, newVal)) {
+    if (comp_(oldVal, newVal)) {
 
         auto nextNodeIt = std::next(nodeIt);
 
@@ -301,10 +299,8 @@ void priority_map<KeyType, ValType, Compare, Hash>::emplace(KeyType key, ValType
 
     ValType newVal = val;
 
-    Compare comp; // Does this have performance hit? Maybe optimize.
-
     // True if Compare is std::less
-    if (comp(0,1)) {
+    if (comp_(0,1)) {
             auto insertionPoint = std::find_if(nodeList_.begin(), nodeList_.end(),
             [&](const auto& node) {
                 return node.val >= newVal;
@@ -375,10 +371,8 @@ typename priority_map<KeyType, ValType, Compare, Hash>::Proxy priority_map<KeyTy
     if (keyToNode_.find(key) == keyToNode_.end()) {
         // If the key doesn't exist, create a new node with value 0
 
-        Compare comp;
-
         // True if Compare is std::less
-        if (comp(0,1)) {
+        if (comp_(0,1)) {
 
             auto insertionPoint = std::find_if(nodeList_.begin(), nodeList_.end(),
             [&](const auto& node) {
