@@ -35,6 +35,9 @@ private:
     // Decrement the value associated with a key.
     void decrement(KeyType key);
 
+    // Create a new key : val mapping
+    void emplace(KeyType key, ValType val);
+
     // Get the value associated with a key.
     ValType getVal(const KeyType& key) const;
 
@@ -44,6 +47,8 @@ public:
     bool empty() const;
 
     std::pair<KeyType, ValType> top() const;
+
+    void pop();
 
     class Proxy;
     Proxy operator[](const KeyType& key);
@@ -61,6 +66,7 @@ public:
         Proxy operator++(int);
         Proxy& operator--();
         Proxy operator--(int);
+        void operator=(const ValType& val);
 
 	operator ValType() const; // Implicit conversion for access to val
     };
@@ -113,6 +119,33 @@ template<
     typename Compare,
     typename Hash
 >
+void priority_map<KeyType, ValType, Compare, Hash>::pop() {
+    if (nodeList_.empty()) {
+        throw std::out_of_range("Can't pop from empty priority_map.");
+    }
+
+    auto nodeIt = nodeList_.begin();
+    if (nodeIt->keys.empty()) {
+        throw std::logic_error("Inconsistent state: Node with no keys.");
+    }
+    KeyType key = *(nodeIt->keys.begin());
+
+    nodeIt->keys.erase(key);
+
+    keyToNode_.erase(key);
+
+    // Remove node if it's empty
+    if (nodeIt->keys.empty()) {
+        nodeList_.erase(nodeIt);
+    }
+}
+
+template<
+    typename KeyType,
+    typename ValType,
+    typename Compare,
+    typename Hash
+>
 void priority_map<KeyType, ValType, Compare, Hash>::increment(KeyType key) {
 
     auto nodeIt = keyToNode_[key];
@@ -135,6 +168,7 @@ void priority_map<KeyType, ValType, Compare, Hash>::increment(KeyType key) {
     // The key with the lowest val will be at the head of the linked list
     // We insert nodes towards the tail of the LL
     if (comp(oldVal, newVal)) {
+
 
         auto nextNodeIt = std::next(nodeIt);
 
@@ -253,6 +287,68 @@ template<
     typename Compare,
     typename Hash
 >
+void priority_map<KeyType, ValType, Compare, Hash>::emplace(KeyType key, ValType val) {
+
+    auto nodeIt = keyToNode_[key];
+
+    // Remove the key from the current node
+    nodeIt->keys.erase(key);
+
+    // Remove the current mapping
+    keyToNode_.erase(key);
+
+    ValType oldVal = nodeIt->val;
+
+    ValType newVal = val;
+
+    Compare comp; // Does this have performance hit? Maybe optimize.
+
+    // True if Compare is std::less
+    if (comp(0,1)) {
+            auto insertionPoint = std::find_if(nodeList_.begin(), nodeList_.end(),
+            [&](const auto& node) {
+                return node.val >= newVal;
+            });
+
+            if (insertionPoint != nodeList_.end() && insertionPoint->val == newVal) {
+                insertionPoint->keys.insert(key);
+            }
+            else {
+                insertionPoint = nodeList_.insert(insertionPoint, {newVal, {key}});
+            }
+
+            keyToNode_[key] = insertionPoint;
+    }
+    else {
+            auto insertionPoint = std::find_if(nodeList_.begin(), nodeList_.end(),
+            [&](const auto& node) {
+                return node.val <= newVal;
+            });
+
+            if (insertionPoint != nodeList_.end() && insertionPoint->val == newVal) {
+                insertionPoint->keys.insert(key);
+            }
+            else {
+                insertionPoint = nodeList_.insert(insertionPoint, {newVal, {key}});
+            }
+
+            keyToNode_[key] = insertionPoint;
+
+    }
+
+    // Remove the old node if it's empty
+    if (nodeIt->keys.empty()) {
+        nodeList_.erase(nodeIt);
+    }
+
+}
+
+template<
+    typename KeyType,
+    typename ValType,
+    typename Compare,
+    typename Hash
+>
 ValType priority_map<KeyType, ValType, Compare, Hash>::getVal(const KeyType& key) const {
     auto it = keyToNode_.find(key); // Try to find the key in the map.
     if (it != keyToNode_.end()) {
@@ -295,11 +391,39 @@ typename priority_map<KeyType, ValType, Compare, Hash>::Proxy priority_map<KeyTy
             else {
                 insertionPoint = nodeList_.insert(insertionPoint, {0, {key}});
             }
-            
+
             keyToNode_[key] = insertionPoint;
 
         }
         else {
+
+            /*
+
+            // Max heap, insert 0
+            auto insertionPoint = std::find_if(nodeList_.rbegin(), nodeList_.rend(), [](const auto& node) {
+                return node.val >= 0;
+            });
+
+            if (insertionPoint != nodeList_.rend()) {
+                if (insertionPoint->val == 0) {
+                    // Found existing zero node
+                    insertionPoint->keys.insert(key);
+                    keyToNode_[key] = insertionPoint.base();
+                } else {
+                    // Found insertion point for new node
+                    auto newNodeIt = nodeList_.insert(std::next(std::prev(insertionPoint).base()), {0, {key}});
+                    keyToNode_[key] = newNodeIt;
+                }
+            } else {
+                // Couldn't find any node with val >= 0, insert at beginning
+                auto newNodeIt = nodeList_.insert(nodeList_.begin(), {0, {key}});
+                keyToNode_[key] = newNodeIt;
+            }
+
+            */
+
+
+
             auto insertionPoint = std::find_if(nodeList_.rbegin(), nodeList_.rend(),
             [&](const auto& node) {
                 return node.val >= 0;
@@ -314,11 +438,15 @@ typename priority_map<KeyType, ValType, Compare, Hash>::Proxy priority_map<KeyTy
                 keyToNode_[key] = newNodeIt;
 
             }
+            //else if (insertionPoint == nodeList_.rbegin()) {
+            //    auto newNodeIt = nodeList_.insert(nodeList_.end(), {0, {key}});
+            //    keyToNode_[key] = newNodeIt;
+            //}
             else {
-                auto newNodeIt = nodeList_.insert(std::prev(insertionPoint.base()), {0, {key}});
+                auto newNodeIt = nodeList_.insert(insertionPoint.base(), {0, {key}});
                 keyToNode_[key] = newNodeIt;
             }
-            
+
 
         }
 
@@ -371,6 +499,16 @@ typename priority_map<KeyType, ValType, Compare, Hash>::Proxy priority_map<KeyTy
     Proxy temp = *this;
     --(*this);
     return temp;
+}
+
+template<
+    typename KeyType,
+    typename ValType,
+    typename Compare,
+    typename Hash
+>
+void priority_map<KeyType, ValType, Compare, Hash>::Proxy::operator=(const ValType& val) {
+    pm->emplace(key, val);
 }
 
 template<
