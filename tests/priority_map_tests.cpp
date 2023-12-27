@@ -22,6 +22,12 @@ TEST_CASE("PriorityMap operations are tested", "[priority_map]") {
         REQUIRE(pmap.size() == 1);
     }
 
+    SECTION("Checking count()") {
+        ++pmap[7];
+        REQUIRE(pmap.count(7) == 1);
+        REQUIRE(pmap.count(8) == 0);
+    }
+
     SECTION("Checking access by operator[]") {
         ++pmap[7];
         ++pmap[7];

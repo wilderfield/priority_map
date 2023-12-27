@@ -1,8 +1,12 @@
+#ifndef WILDERFIELD_PRIORITY_MAP_H
+#define WILDERFIELD_PRIORITY_MAP_H
 
 #include <unordered_map>
 #include <list>
 #include <unordered_set>
 #include <iterator>
+#include <functional>
+#include <type_traits>
 
 namespace wilderfield {
 
@@ -31,9 +35,12 @@ private:
     // Map from keys to their corresponding node iterator in nodeList.
     std::unordered_map<KeyType, typename std::list<Node>::iterator, Hash> keyToNode_;
 
+    // Insert new key
+    void insert(const KeyType& key, const ValType& newVal);
+
     // Update Key with Val
     // This function can be used for increment, decrement, or assigning a new val
-    void update(KeyType key, ValType newVal);
+    void update(const KeyType& key, const ValType& newVal);
 
     // Get the value associated with a key.
     ValType getVal(const KeyType& key) const;
@@ -42,7 +49,7 @@ public:
 
     size_t size() const;
     bool empty() const;
-
+    size_t count(const KeyType& key) const;
     std::pair<KeyType, ValType> top() const;
 
     void pop();
@@ -98,6 +105,16 @@ template<
     typename Compare,
     typename Hash
 >
+size_t priority_map<KeyType, ValType, Compare, Hash>::count(const KeyType& key) const {
+    return keyToNode_.count(key);
+}
+
+template<
+    typename KeyType,
+    typename ValType,
+    typename Compare,
+    typename Hash
+>
 std::pair<KeyType, ValType> priority_map<KeyType, ValType, Compare, Hash>::top() const {
     if (nodeList_.empty()) {
         throw std::out_of_range("Can't access top on an empty priority_map.");
@@ -143,7 +160,68 @@ template<
     typename Compare,
     typename Hash
 >
-void priority_map<KeyType, ValType, Compare, Hash>::update(KeyType key, ValType newVal) {
+void priority_map<KeyType, ValType, Compare, Hash>::insert(const KeyType& key, const ValType& newVal) {
+
+    if (keyToNode_.find(key) == keyToNode_.end()) {
+
+        // Scenarios:
+        // MinHeap std::less:
+        //   search from begin() towards end for node.val >= 0
+
+        // MaxHeap std::greater:
+        //   search from end() towards begin for node.val >= 0
+
+        // True if minHeap
+        if (comp_(0, 1)) {
+
+            // Linear search towards end
+            auto insertionPoint = std::find_if(nodeList_.begin(), nodeList_.end(),
+            [&](const auto& node) {
+                return node.val >= 0;
+            });
+
+            if (insertionPoint != nodeList_.end() && insertionPoint->val == 0) {
+               insertionPoint->keys.insert(key);
+            }
+            else {
+                insertionPoint = nodeList_.insert(insertionPoint, {0, {key}});
+            }
+
+            keyToNode_[key] = insertionPoint;
+
+        }
+        // maxHeap
+        else {
+
+            // Linear search towards begin
+            auto insertionPoint = std::find_if(nodeList_.rbegin(), nodeList_.rend(),
+            [&](const auto& node) {
+                return node.val >= 0;
+            });
+
+            if (insertionPoint != nodeList_.rend() && insertionPoint->val == 0) {
+                insertionPoint->keys.insert(key);
+                keyToNode_[key] = std::next(insertionPoint).base();
+            }
+            else {
+                auto newIt = nodeList_.insert(insertionPoint.base(), {0, {key}});
+                keyToNode_[key] = newIt;
+            }
+        }
+
+    }
+
+    update(key, newVal);
+
+}
+
+template<
+    typename KeyType,
+    typename ValType,
+    typename Compare,
+    typename Hash
+>
+void priority_map<KeyType, ValType, Compare, Hash>::update(const KeyType& key, const ValType& newVal) {
 
     auto oldIt = keyToNode_[key];
 
@@ -227,18 +305,12 @@ template<
 ValType priority_map<KeyType, ValType, Compare, Hash>::getVal(const KeyType& key) const {
     auto it = keyToNode_.find(key); // Try to find the key in the map.
     if (it != keyToNode_.end()) {
-        // If found, return the associated value.
-        return it->second->val; // Assuming 'second' is an iterator to the list of Nodes.
-    } else {
-        // If not found, handle the missing key. Options include:
-        // Option 1: Throw an exception.
-        throw std::out_of_range("Key not found in priority_map.");
-
-        // Option 2: Return a default value for ValType.
-        // return ValType{};
+        return it->second->val;
     }
+    // If not found, handle the missing key.
+    throw std::out_of_range("Key not found in priority_map.");
+    return ValType{};
 }
-
 
 template<
     typename KeyType,
@@ -247,82 +319,10 @@ template<
     typename Hash
 >
 typename priority_map<KeyType, ValType, Compare, Hash>::Proxy priority_map<KeyType, ValType, Compare, Hash>::operator[](const KeyType& key) {
+
+    // If the key doesn't exist, create a new node with value 0
     if (keyToNode_.find(key) == keyToNode_.end()) {
-        // If the key doesn't exist, create a new node with value 0
-
-        // True if Compare is std::less
-        if (comp_(0,1)) {
-
-            auto insertionPoint = std::find_if(nodeList_.begin(), nodeList_.end(),
-            [&](const auto& node) {
-                return node.val >= 0;
-            });
-
-            if (insertionPoint != nodeList_.end() && insertionPoint->val == 0) {
-                insertionPoint->keys.insert(key);
-            }
-            else {
-                insertionPoint = nodeList_.insert(insertionPoint, {0, {key}});
-            }
-
-            keyToNode_[key] = insertionPoint;
-
-        }
-        else {
-
-            /*
-
-            // Max heap, insert 0
-            auto insertionPoint = std::find_if(nodeList_.rbegin(), nodeList_.rend(), [](const auto& node) {
-                return node.val >= 0;
-            });
-
-            if (insertionPoint != nodeList_.rend()) {
-                if (insertionPoint->val == 0) {
-                    // Found existing zero node
-                    insertionPoint->keys.insert(key);
-                    keyToNode_[key] = insertionPoint.base();
-                } else {
-                    // Found insertion point for new node
-                    auto newNodeIt = nodeList_.insert(std::next(std::prev(insertionPoint).base()), {0, {key}});
-                    keyToNode_[key] = newNodeIt;
-                }
-            } else {
-                // Couldn't find any node with val >= 0, insert at beginning
-                auto newNodeIt = nodeList_.insert(nodeList_.begin(), {0, {key}});
-                keyToNode_[key] = newNodeIt;
-            }
-
-            */
-
-
-
-            auto insertionPoint = std::find_if(nodeList_.rbegin(), nodeList_.rend(),
-            [&](const auto& node) {
-                return node.val >= 0;
-            });
-
-            if (insertionPoint != nodeList_.rend() && insertionPoint->val == 0) {
-                insertionPoint->keys.insert(key);
-                keyToNode_[key] = insertionPoint.base();
-            }
-            else if (insertionPoint == nodeList_.rend()) {
-                auto newNodeIt = nodeList_.insert(nodeList_.begin(), {0, {key}});
-                keyToNode_[key] = newNodeIt;
-
-            }
-            //else if (insertionPoint == nodeList_.rbegin()) {
-            //    auto newNodeIt = nodeList_.insert(nodeList_.end(), {0, {key}});
-            //    keyToNode_[key] = newNodeIt;
-            //}
-            else {
-                auto newNodeIt = nodeList_.insert(insertionPoint.base(), {0, {key}});
-                keyToNode_[key] = newNodeIt;
-            }
-
-
-        }
-
+        insert(key, 0);
     }
     return Proxy(this, key);
 }
@@ -395,3 +395,5 @@ priority_map<KeyType, ValType, Compare, Hash>::Proxy::operator ValType() const {
 }
 
 } // namespace
+
+#endif // WILDERFIELD_PRIORITY_MAP_H
