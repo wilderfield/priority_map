@@ -31,14 +31,9 @@ private:
     // Map from keys to their corresponding node iterator in nodeList.
     std::unordered_map<KeyType, typename std::list<Node>::iterator, Hash> keyToNode_;
 
-    // Increment the value associated with a key.
-    void increment(KeyType key);
-
-    // Decrement the value associated with a key.
-    void decrement(KeyType key);
-
-    // Create a new key : val mapping
-    void emplace(KeyType key, ValType val);
+    // Update Key with Val
+    // This function can be used for increment, decrement, or assigning a new val
+    void update(KeyType key, ValType newVal);
 
     // Get the value associated with a key.
     ValType getVal(const KeyType& key) const;
@@ -148,193 +143,77 @@ template<
     typename Compare,
     typename Hash
 >
-void priority_map<KeyType, ValType, Compare, Hash>::increment(KeyType key) {
+void priority_map<KeyType, ValType, Compare, Hash>::update(KeyType key, ValType newVal) {
 
-    auto nodeIt = keyToNode_[key];
+    auto oldIt = keyToNode_[key];
 
-    // Remove the key from the current node
-    nodeIt->keys.erase(key);
+    // Save Old Value
+    ValType oldVal = oldIt->val;
 
-    // Remove the current mapping
+    if (oldVal == newVal) return;
+
+    // Remove the key from the old association
+    oldIt->keys.erase(key);
     keyToNode_.erase(key);
 
-    ValType oldVal = nodeIt->val;
+    // Scenarios:
+    // MinHeap std::less:
+    //     oldVal < newVal, search from nodeIt towards end for newVal < node.val
+    //     oldVal > newVal, search from nodeIt towards begin for newVal > node.val
 
-    // Increment the value
-    ValType newVal = oldVal + 1;
+    // MaxHeap std::greater:
+    //     oldVal > newVal, search from nodeIt towards end for newVal > node.val
+    //     olVal < newVal, search from nodeIt towards begin for newVal < node.val
 
-    // This will evaluate true it std::less is used
-    // If std::less is used we mimic a minheap
-    // The key with the lowest val will be at the head of the linked list
-    // We insert nodes towards the tail of the LL
+    // True if minHeap and oldVal < newVal or if maxHeap and oldVal > newVal
     if (comp_(oldVal, newVal)) {
 
+        // Linear search towards end
+        auto insertionPoint = std::find_if(oldIt, nodeList_.end(),
+        [&](const auto& node) {
+            if (comp_(1,0)) {
+                return newVal > node.val;
+            }
+            return newVal < node.val;
+        });
 
-        auto nextNodeIt = std::next(nodeIt);
-
-        // Check if we need to create a new node or use the next node
-        if (nextNodeIt == nodeList_.end() || nextNodeIt->val != newVal) {
-            // Insert a new node with the incremented value
-            nextNodeIt = nodeList_.insert(nextNodeIt, {newVal, {}});
+        if (insertionPoint != nodeList_.end() && insertionPoint->val == newVal) {
+           insertionPoint->keys.insert(key);
+        }
+        else {
+            insertionPoint = nodeList_.insert(insertionPoint, {newVal, {key}});
         }
 
-        // Add the key to the next node
-        nextNodeIt->keys.insert(key);
-
-        // Update the map
-        keyToNode_[key] = nextNodeIt;
+        keyToNode_[key] = insertionPoint;
 
     }
-    // std::greater is used
-    // We mimic a maxheap
-    // The key with the greatest val will be at the head of the linked list
-    // We insert nodes towards the head of the LL
+    // minHeap and oldVal > newVal or maxHeap and oldVal < newVal
     else {
-        auto prevNodeIt = (nodeIt != nodeList_.begin()) ? std::prev(nodeIt) : nodeList_.end();
+        // Need to search in reverse
+        typename std::list<Node>::reverse_iterator oldRit(oldIt); // oldRit will point one element closer to begin
 
-        // Check if we need to create a new node or use the next node
-        if (prevNodeIt == nodeList_.end() || prevNodeIt->val != newVal) {
-            // Insert a new node with the incremented value
-            prevNodeIt = nodeList_.insert(nodeIt, {newVal, {}});
+        // Linear search towards begin
+        auto insertionPoint = std::find_if(oldRit, nodeList_.rend(),
+        [&](const auto& node) {
+            if (comp_(0,1)) {
+                return newVal > node.val;
+            }
+            return newVal < node.val;
+        });
+
+        if (insertionPoint != nodeList_.rend() && insertionPoint->val == newVal) {
+            insertionPoint->keys.insert(key);
+            keyToNode_[key] = std::next(insertionPoint).base();
         }
-
-        // Add the key to the previous node
-        prevNodeIt->keys.insert(key);
-
-        // Update the map
-        keyToNode_[key] = prevNodeIt;
-
+        else {
+            auto newIt = nodeList_.insert(insertionPoint.base(), {newVal, {key}});
+            keyToNode_[key] = newIt;
+        }
     }
 
     // Remove the old node if it's empty
-    if (nodeIt->keys.empty()) {
-        nodeList_.erase(nodeIt);
-    }
-
-}
-
-template<
-    typename KeyType,
-    typename ValType,
-    typename Compare,
-    typename Hash
->
-void priority_map<KeyType, ValType, Compare, Hash>::decrement(KeyType key) {
-
-    auto nodeIt = keyToNode_[key];
-
-    // Remove the key from the current node
-    nodeIt->keys.erase(key);
-
-    // Remove the current mapping
-    keyToNode_.erase(key);
-
-    ValType oldVal = nodeIt->val;
-
-    // Decrement the value
-    ValType newVal = oldVal - 1;
-
-    // This will evaluate true if std::greater is used
-    if (comp_(oldVal, newVal)) {
-
-        auto nextNodeIt = std::next(nodeIt);
-
-        // Check if we need to create a new node or use the next node
-        if (nextNodeIt == nodeList_.end() || nextNodeIt->val != newVal) {
-            // Insert a new node with the incremented value
-            nextNodeIt = nodeList_.insert(nextNodeIt, {newVal, {}});
-        }
-
-        // Add the key to the next node
-        nextNodeIt->keys.insert(key);
-
-        // Update the map
-        keyToNode_[key] = nextNodeIt;
-
-    }
-    // std::greater is used
-    // We mimic a maxheap
-    // The key with the greatest val will be at the head of the linked list
-    // We insert nodes towards the head of the LL
-    else {
-        auto prevNodeIt = (nodeIt != nodeList_.begin()) ? std::prev(nodeIt) : nodeList_.end();
-
-        // Check if we need to create a new node or use the next node
-        if (prevNodeIt == nodeList_.end() || prevNodeIt->val != newVal) {
-            // Insert a new node with the incremented value
-            prevNodeIt = nodeList_.insert(nodeIt, {newVal, {}});
-        }
-
-        // Add the key to the previous node
-        prevNodeIt->keys.insert(key);
-
-        // Update the map
-        keyToNode_[key] = prevNodeIt;
-
-    }
-
-    // Remove the old node if it's empty
-    if (nodeIt->keys.empty()) {
-        nodeList_.erase(nodeIt);
-    }
-}
-
-template<
-    typename KeyType,
-    typename ValType,
-    typename Compare,
-    typename Hash
->
-void priority_map<KeyType, ValType, Compare, Hash>::emplace(KeyType key, ValType val) {
-
-    auto nodeIt = keyToNode_[key];
-
-    // Remove the key from the current node
-    nodeIt->keys.erase(key);
-
-    // Remove the current mapping
-    keyToNode_.erase(key);
-
-    ValType oldVal = nodeIt->val;
-
-    ValType newVal = val;
-
-    // True if Compare is std::less
-    if (comp_(0,1)) {
-            auto insertionPoint = std::find_if(nodeList_.begin(), nodeList_.end(),
-            [&](const auto& node) {
-                return node.val >= newVal;
-            });
-
-            if (insertionPoint != nodeList_.end() && insertionPoint->val == newVal) {
-                insertionPoint->keys.insert(key);
-            }
-            else {
-                insertionPoint = nodeList_.insert(insertionPoint, {newVal, {key}});
-            }
-
-            keyToNode_[key] = insertionPoint;
-    }
-    else {
-            auto insertionPoint = std::find_if(nodeList_.begin(), nodeList_.end(),
-            [&](const auto& node) {
-                return node.val <= newVal;
-            });
-
-            if (insertionPoint != nodeList_.end() && insertionPoint->val == newVal) {
-                insertionPoint->keys.insert(key);
-            }
-            else {
-                insertionPoint = nodeList_.insert(insertionPoint, {newVal, {key}});
-            }
-
-            keyToNode_[key] = insertionPoint;
-
-    }
-
-    // Remove the old node if it's empty
-    if (nodeIt->keys.empty()) {
-        nodeList_.erase(nodeIt);
+    if (oldIt->keys.empty()) {
+        nodeList_.erase(oldIt);
     }
 
 }
@@ -456,7 +335,7 @@ template<
     typename Hash
 >
 typename priority_map<KeyType, ValType, Compare, Hash>::Proxy& priority_map<KeyType, ValType, Compare, Hash>::Proxy::operator++() {
-    pm->increment(key);
+    pm->update(key,(*pm)[key]+1);
     return *this;
 }
 
@@ -479,7 +358,8 @@ template<
     typename Hash
 >
 typename priority_map<KeyType, ValType, Compare, Hash>::Proxy& priority_map<KeyType, ValType, Compare, Hash>::Proxy::operator--() {
-    pm->decrement(key);
+    //pm->decrement(key);
+    pm->update(key, (*pm)[key]-1);
     return *this;
 }
 
@@ -502,7 +382,7 @@ template<
     typename Hash
 >
 void priority_map<KeyType, ValType, Compare, Hash>::Proxy::operator=(const ValType& val) {
-    pm->emplace(key, val);
+    pm->update(key, val);
 }
 
 template<
