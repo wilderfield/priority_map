@@ -1,0 +1,22 @@
+Start testing: Dec 22 00:39 PST
+----------------------------------------------------------
+1/1 Testing: PriorityMap operations are tested
+1/1 Test: PriorityMap operations are tested
+Command: "/Users/bryanloz/FrequencyMap/priority_map/priority_map/build/tests/priority_map_test" "PriorityMap operations are tested"
+Directory: /Users/bryanloz/FrequencyMap/priority_map/priority_map/build/tests
+"PriorityMap operations are tested" start time: Dec 22 00:39 PST
+Output:
+----------------------------------------------------------
+Filters: PriorityMap operations are tested
+===============================================================================
+All tests passed (3 assertions in 1 test case)
+
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"PriorityMap operations are tested" end time: Dec 22 00:39 PST
+"PriorityMap operations are tested" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Dec 22 00:39 PST
