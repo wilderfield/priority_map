@@ -1,3 +1,11 @@
+/**
+ * @file priority_map.h
+ * @brief Priority Map Template Class Definition
+ *
+ * Defines a templated priority map class that allows for efficient retrieval,
+ * update, and tracking of keys by their associated priority values.
+ */
+
 #ifndef WILDERFIELD_PRIORITY_MAP_H
 #define WILDERFIELD_PRIORITY_MAP_H
 
@@ -7,9 +15,22 @@
 #include <iterator>
 #include <functional>
 #include <type_traits>
+#include <algorithm>
 
 namespace wilderfield {
 
+/**
+ * @brief Priority map class
+ * 
+ * Implements a priority map where each key is associated with a priority value.
+ * The map maintains the keys in sorted order based on their priority, allowing
+ * for efficient retrieval and modification of priorities.
+ *
+ * @tparam KeyType The type of the keys.
+ * @tparam ValType The type of the values (priorities), must be numeric.
+ * @tparam Compare Comparison class used to maintain the ordering of values.
+ * @tparam Hash Hashing class used for keys.
+ */
 template<
     typename KeyType,
     typename ValType,
@@ -23,17 +44,17 @@ static_assert(std::is_arithmetic<ValType>::value, "ValType must be a numeric typ
 private:
     Compare comp_;
 
-    // Node structure representing a value and the set of keys associated with this value.
     struct Node {
-        ValType val;
-        std::unordered_set<KeyType, Hash> keys;
+        ValType val; ///< The priority value.
+        std::unordered_set<KeyType, Hash> keys; ///< Set of keys associated with this value.
     };
 
-    // List to maintain nodes sorted by value.
-    std::list<Node> nodeList_;
+    std::list<Node> nodeList_; ///< List to maintain nodes sorted by value.
 
     // Map from keys to their corresponding node iterator in nodeList.
-    std::unordered_map<KeyType, typename std::list<Node>::iterator, Hash> keyToNode_;
+    std::unordered_map<KeyType, typename std::list<Node>::iterator, Hash> keyToNode_; ///< Map from keys to their corresponding node iterator in nodeList.
+
+    // Private member functions
 
     // Insert new key
     void insert(const KeyType& key, const ValType& newVal);
@@ -47,12 +68,12 @@ private:
 
 public:
 
-    size_t size() const;
-    bool empty() const;
-    size_t count(const KeyType& key) const;
-    std::pair<KeyType, ValType> top() const;
+    size_t size() const; ///< Returns the number of unique keys in the priority map.
+    bool empty() const; ///< Checks whether the priority map is empty.
+    size_t count(const KeyType& key) const; ///< Returns the count of a particular key in the map.
+    std::pair<KeyType, ValType> top() const; ///< Returns the top element (key-value pair) in the priority map.
 
-    void pop();
+    void pop(); ///< Removes the top element from the priority map.
 
     class Proxy;
     Proxy operator[](const KeyType& key);
