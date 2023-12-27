@@ -335,7 +335,7 @@ template<
     typename Hash
 >
 typename priority_map<KeyType, ValType, Compare, Hash>::Proxy& priority_map<KeyType, ValType, Compare, Hash>::Proxy::operator++() {
-    pm->update(key,(*pm)[key]+1);
+    pm->update(key, pm->getVal(key)+1);
     return *this;
 }
 
@@ -358,8 +358,7 @@ template<
     typename Hash
 >
 typename priority_map<KeyType, ValType, Compare, Hash>::Proxy& priority_map<KeyType, ValType, Compare, Hash>::Proxy::operator--() {
-    //pm->decrement(key);
-    pm->update(key, (*pm)[key]-1);
+    pm->update(key, pm->getVal(key)-1);
     return *this;
 }
 
