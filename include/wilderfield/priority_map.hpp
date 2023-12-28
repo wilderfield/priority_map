@@ -1,13 +1,13 @@
 /**
- * @file priority_map.h
+ * @file priority_map.hpp
  * @brief Priority Map Template Class Definition
  *
  * Defines a templated priority map class that allows for efficient retrieval,
  * update, and tracking of keys by their associated priority values.
  */
 
-#ifndef WILDERFIELD_PRIORITY_MAP_H
-#define WILDERFIELD_PRIORITY_MAP_H
+#ifndef WILDERFIELD_PRIORITY_MAP_HPP
+#define WILDERFIELD_PRIORITY_MAP_HPP
 
 #include <unordered_map>
 #include <list>
@@ -417,4 +417,4 @@ priority_map<KeyType, ValType, Compare, Hash>::Proxy::operator ValType() const {
 
 } // namespace
 
-#endif // WILDERFIELD_PRIORITY_MAP_H
+#endif // WILDERFIELD_PRIORITY_MAP_HPP
