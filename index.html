@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.9.1"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>wilderfield: Main Page</title>
+<title>wilderfield: Priority Map Documentation</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -60,11 +60,71 @@ $(function() {
 </iframe>
 </div>
 
-<div class="header">
+<div class="PageDoc"><div class="header">
   <div class="headertitle">
-<div class="title">wilderfield Documentation</div>  </div>
+<div class="title">Priority Map Documentation </div>  </div>
 </div><!--header-->
 <div class="contents">
+<div class="textblock"><h1><a class="anchor" id="intro_sec"></a>
+Introduction</h1>
+<p>This is the documentation for the <code><a class="el" href="classwilderfield_1_1priority__map.html" title="Priority map class.">wilderfield::priority_map</a></code> class. The <code>priority_map</code> class is designed to manage a set of elements, each with a priority, allowing for efficient retrieval, updating, and tracking of elements based on their priority.</p>
+<p>The source code for this project is available on GitHub: <a href="https://github.com/wilderfield/priority_map">wilderfield/priority_map</a></p>
+<h1><a class="anchor" id="install_sec"></a>
+Usage</h1>
+<p>Here is a basic example of how to use the <code>priority_map</code> class:</p>
+<div class="fragment"><div class="line"><span class="preprocessor">#include &quot;<a class="code" href="priority__map_8hpp.html">wilderfield/priority_map.hpp</a>&quot;</span></div>
+<div class="line"> </div>
+<div class="line"><span class="comment">// Define a priority_map instance</span></div>
+<div class="line"><a class="code" href="classwilderfield_1_1priority__map.html">wilderfield::priority_map&lt;int, int&gt;</a> pmap;</div>
+<div class="line"> </div>
+<div class="line"><span class="comment">// Increment priority of key 7</span></div>
+<div class="line">++pmap[7];</div>
+<div class="line"> </div>
+<div class="line"><span class="comment">// Retrieve and check the top element</span></div>
+<div class="line"><span class="keyword">auto</span> [key, value] = pmap.<a class="code" href="classwilderfield_1_1priority__map.html#aa9f78cd8ee51f450edae6ca99620b54a">top</a>();</div>
+<div class="line">std::cout &lt;&lt; <span class="stringliteral">&quot;Top element key: &quot;</span> &lt;&lt; key &lt;&lt; <span class="stringliteral">&quot; with priority: &quot;</span> &lt;&lt; value &lt;&lt; std::endl;</div>
+<div class="ttc" id="aclasswilderfield_1_1priority__map_html"><div class="ttname"><a href="classwilderfield_1_1priority__map.html">wilderfield::priority_map</a></div><div class="ttdoc">Priority map class.</div><div class="ttdef"><b>Definition:</b> priority_map.hpp:40</div></div>
+<div class="ttc" id="aclasswilderfield_1_1priority__map_html_aa9f78cd8ee51f450edae6ca99620b54a"><div class="ttname"><a href="classwilderfield_1_1priority__map.html#aa9f78cd8ee51f450edae6ca99620b54a">wilderfield::priority_map::top</a></div><div class="ttdeci">std::pair&lt; KeyType, ValType &gt; top() const</div><div class="ttdoc">Returns the top element (key-value pair) in the priority map.</div><div class="ttdef"><b>Definition:</b> priority_map.hpp:139</div></div>
+<div class="ttc" id="apriority__map_8hpp_html"><div class="ttname"><a href="priority__map_8hpp.html">priority_map.hpp</a></div><div class="ttdoc">Priority Map Template Class Definition.</div></div>
+</div><!-- fragment --><h1><a class="anchor" id="test_sec"></a>
+Example Test Case</h1>
+<p>Below is an example test case from the main suite, illustrating topological sort using Khan's algorithm:</p>
+<div class="fragment"><div class="line">std::vector&lt;int&gt; topological;</div>
+<div class="line"> </div>
+<div class="line"><span class="comment">// Construct priority map with lower values as highest priority</span></div>
+<div class="line"><a class="code" href="classwilderfield_1_1priority__map.html">wilderfield::priority_map&lt;int, int, std::less&lt;int&gt;</a>&gt; pmap;</div>
+<div class="line"> </div>
+<div class="line"><span class="comment">// Test graph</span></div>
+<div class="line">std::vector&lt;std::vector&lt;int&gt;&gt; graph(6);</div>
+<div class="line"><span class="comment">// Insert edges</span></div>
+<div class="line"> </div>
+<div class="line"><span class="comment">// Initialize pmap to have all nodes with indegree 0</span></div>
+<div class="line"><span class="keywordflow">for</span> (<span class="keywordtype">int</span> u = 0; u &lt; graph.size(); u++) {</div>
+<div class="line">    pmap[u] = 0;</div>
+<div class="line">}</div>
+<div class="line"> </div>
+<div class="line"><span class="comment">// Calculate indegrees for each node</span></div>
+<div class="line"><span class="keywordflow">for</span> (<span class="keywordtype">int</span> u = 0; u &lt; graph.size(); u++) {</div>
+<div class="line">    <span class="keywordflow">for</span> (<span class="keyword">auto</span> v : graph[u]) {</div>
+<div class="line">        ++pmap[v];</div>
+<div class="line">    }</div>
+<div class="line">}</div>
+<div class="line"> </div>
+<div class="line"><span class="comment">// Iterate over nodes by smallest indegree</span></div>
+<div class="line"><span class="keywordflow">while</span> (!pmap.<a class="code" href="classwilderfield_1_1priority__map.html#a2d074cd584887160d7287ae7f9d1cad2">empty</a>()) {</div>
+<div class="line">    <span class="keyword">auto</span> [u, minVal] = pmap.<a class="code" href="classwilderfield_1_1priority__map.html#aa9f78cd8ee51f450edae6ca99620b54a">top</a>(); pmap.<a class="code" href="classwilderfield_1_1priority__map.html#aa3d389447917f70fa0d51660f3846c12">pop</a>();</div>
+<div class="line">    REQUIRE(minVal == 0); <span class="comment">// If not the graph has a cycle</span></div>
+<div class="line">    topological.push_back(u);</div>
+<div class="line">    <span class="keywordflow">for</span> (<span class="keyword">auto</span> v : graph[u]) { <span class="comment">// Decrease indegrees after removing node u</span></div>
+<div class="line">        --pmap[v];</div>
+<div class="line">    }</div>
+<div class="line">}</div>
+<div class="line"> </div>
+<div class="line"><span class="keywordflow">return</span> topological;</div>
+<div class="ttc" id="aclasswilderfield_1_1priority__map_html_a2d074cd584887160d7287ae7f9d1cad2"><div class="ttname"><a href="classwilderfield_1_1priority__map.html#a2d074cd584887160d7287ae7f9d1cad2">wilderfield::priority_map::empty</a></div><div class="ttdeci">bool empty() const</div><div class="ttdoc">Checks whether the priority map is empty.</div><div class="ttdef"><b>Definition:</b> priority_map.hpp:119</div></div>
+<div class="ttc" id="aclasswilderfield_1_1priority__map_html_aa3d389447917f70fa0d51660f3846c12"><div class="ttname"><a href="classwilderfield_1_1priority__map.html#aa3d389447917f70fa0d51660f3846c12">wilderfield::priority_map::pop</a></div><div class="ttdeci">void pop()</div><div class="ttdoc">Removes the top element from the priority map.</div><div class="ttdef"><b>Definition:</b> priority_map.hpp:157</div></div>
+</div><!-- fragment --><p>For more information and advanced usage, refer to the respective class and method documentation. </p>
+</div></div><!-- PageDoc -->
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
