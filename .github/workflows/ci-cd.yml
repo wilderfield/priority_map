@@ -1,0 +1,47 @@
+name: Continuous Integration and Deployment
+
+# Controls when the action will run. In this case, on every push to the main branch.
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-test-document-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Step 1: Check out the repository
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+      with:
+        submodules: 'recursive'  # Fetches submodules if your project has them.
+
+    # Step 2: Set up environment (like CMake, Doxygen, etc.)
+    - name: Set up CMake
+      uses: lukka/get-cmake@v3.19.2
+
+    - name: Install Doxygen
+      run: sudo apt-get install doxygen
+
+    # Step 3: Build the project using CMake
+    - name: Build Project
+      run: |
+        mkdir build
+        cd build
+        cmake ..
+        make
+
+    # Step 4: Run tests (if you have a testing framework set up)
+    - name: Run Tests
+      run: |
+        cd build
+        ctest
+
+    # Step 5: Deploy to GitHub Pages
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      if: github.ref == 'refs/heads/main'  # Ensures deployment happens only on main branch
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./build/docs/html  # Or wherever Doxygen outputs your files
+
