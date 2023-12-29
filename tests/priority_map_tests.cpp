@@ -4,8 +4,10 @@
 
 #include <vector>
 #include <unordered_map>
+#include <unordered_set>
 
-#include <iostream>
+#include <cstdlib> // For std::rand and std::srand
+#include <ctime>   // For std::time
 
 TEST_CASE("PriorityMap operations are tested", "[priority_map]") {
 
@@ -178,6 +180,133 @@ TEST_CASE("PriorityMap operations are tested", "[priority_map]") {
         REQUIRE(valid);
 
     }
+
+    SECTION("Lots of keys") {
+        for (int i = 0; i < 1000; i++) {
+            ++pmap[i];
+        }
+        REQUIRE(pmap.size() == 1000);
+        {
+            auto [maxKey, maxVal] = pmap.top();
+            REQUIRE(maxKey < 1000);
+            REQUIRE(maxVal == 1);
+        }
+        ++pmap[7];
+        {
+            auto [maxKey, maxVal] = pmap.top();
+            REQUIRE(maxKey == 7);
+            REQUIRE(maxVal == 2);
+        }
+
+    }
+
+    SECTION("Multiple key updates and retrieval") {
+        pmap[1] = 50;
+        pmap[2] = 50;
+        pmap[3] = 100;
+        REQUIRE(pmap[1] == 50);
+        REQUIRE(pmap[2] == 50);
+        REQUIRE(pmap[3] == 100);
+        auto [maxKey, maxVal] = pmap.top();
+        REQUIRE(maxKey == 3);
+        REQUIRE(maxVal == 100);
+    }
+
+    SECTION("Repeated increments and decrements") {
+        ++pmap[10];
+        ++pmap[10];
+        --pmap[10];
+        REQUIRE(pmap[10] == 1);
+        ++pmap[5];
+        ++pmap[5];
+        ++pmap[5];
+        --pmap[5];
+        --pmap[5];
+        REQUIRE(pmap[5] == 1);
+        auto [maxKey, maxVal] = pmap.top();
+        REQUIRE((maxKey == 10 || maxKey == 5));
+        REQUIRE(maxVal == 1);
+    }
+
+
+    SECTION("Stress Test with Random Keys") {
+        std::srand(std::time(nullptr)); // Seed the random number generator
+        wilderfield::priority_map<int, int> pmap;
+
+        int currentMaxVal = std::numeric_limits<int>::min();
+        std::unordered_set<int> currentMaxKeys;
+
+        for (int i = 0; i < 1000; ++i) {
+            int key = std::rand() % 100; // keys between 0 and 99
+
+            // Insert random key with random value if it doesn't exist
+            if (pmap.count(key) == 0) {
+                int val = std::rand() % 100; // values between 0 and 99
+                pmap[key] = val;
+                if (val > currentMaxVal) {
+                    currentMaxVal = val;
+                    currentMaxKeys = {key};
+                }
+                else if (val == currentMaxVal) {
+                    currentMaxKeys.insert(key);
+                }
+            } else {
+                ++pmap[key];
+                if (pmap[key] > currentMaxVal) {
+                    currentMaxVal = pmap[key];
+                    currentMaxKeys = {key};
+                }
+                else if (pmap[key] == currentMaxVal) {
+                    currentMaxKeys.insert(key);
+                }
+            }
+        }
+
+        // Verify the top element is the same as the calculated maximum
+        auto [maxKey, maxVal] = pmap.top();
+        REQUIRE(maxVal == currentMaxVal);
+        REQUIRE(currentMaxKeys.count(maxKey) >= 1);
+    }
+
+    SECTION("Stress Test with Random Keys MinHeap") {
+        std::srand(std::time(nullptr)); // Seed the random number generator
+        wilderfield::priority_map<int, int, std::less<int>> pmap;
+
+        int currentMinVal = std::numeric_limits<int>::max();
+        std::unordered_set<int> currentMinKeys;
+
+        for (int i = 0; i < 1000; ++i) {
+            int key = std::rand() % 100; // keys between 0 and 99
+
+            // Insert random key with random value if it doesn't exist
+            if (pmap.count(key) == 0) {
+                int val = std::rand() % 100; // values between 0 and 99
+                pmap[key] = val;
+                if (val < currentMinVal) {
+                    currentMinVal = val;
+                    currentMinKeys = {key};
+                }
+                else if (val == currentMinVal) {
+                    currentMinKeys.insert(key);
+                }
+            } else {
+                --pmap[key];
+                if (pmap[key] < currentMinVal) {
+                    currentMinVal = pmap[key];
+                    currentMinKeys = {key};
+                }
+                else if (pmap[key] == currentMinVal) {
+                    currentMinKeys.insert(key);
+                }
+            }
+        }
+
+        // Verify the top element is the same as the calculated minimum
+        auto [minKey, minVal] = pmap.top();
+        REQUIRE(minVal == currentMinVal);
+        REQUIRE(currentMinKeys.count(minKey) >= 1);
+    }
+
 
 }
 

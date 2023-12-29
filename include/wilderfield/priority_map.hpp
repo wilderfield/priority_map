@@ -21,7 +21,7 @@ namespace wilderfield {
 
 /**
  * @brief Priority map class
- * 
+ *
  * Implements a priority map where each key is associated with a priority value.
  * The map maintains the keys in sorted order based on their priority, allowing
  * for efficient retrieval and modification of priorities.
@@ -87,13 +87,32 @@ public:
     public:
         Proxy(priority_map* pm, const KeyType& key) : pm(pm), key(key) {}
 
-        Proxy& operator++();
-        Proxy operator++(int);
-        Proxy& operator--();
-        Proxy operator--(int);
-        void operator=(const ValType& val);
+        Proxy& operator++() {
+            pm->update(key, pm->getVal(key)+1);
+            return *this;
 
-	operator ValType() const; // Implicit conversion for access to val
+        }
+
+        Proxy operator++(int) {
+            Proxy temp = *this;
+            ++(*this);
+            return temp;
+        }
+
+        Proxy& operator--() {
+            pm->update(key, pm->getVal(key)-1);
+            return *this;
+        }
+
+        Proxy operator--(int) {
+            Proxy temp = *this;
+            --(*this);
+            return temp;
+        }
+       	
+        void operator=(const ValType& val) {pm->update(key, val);}
+
+        operator ValType() const {return pm->getVal(key);}
     };
 
 };
@@ -271,9 +290,9 @@ void priority_map<KeyType, ValType, Compare, Hash>::update(const KeyType& key, c
         auto insertionPoint = std::find_if(oldIt, nodeList_.end(),
         [&](const auto& node) {
             if (comp_(1,0)) {
-                return newVal > node.val;
+                return node.val <= newVal;
             }
-            return newVal < node.val;
+            return node.val >= newVal;
         });
 
         if (insertionPoint != nodeList_.end() && insertionPoint->val == newVal) {
@@ -295,9 +314,9 @@ void priority_map<KeyType, ValType, Compare, Hash>::update(const KeyType& key, c
         auto insertionPoint = std::find_if(oldRit, nodeList_.rend(),
         [&](const auto& node) {
             if (comp_(0,1)) {
-                return newVal > node.val;
+                return node.val <= newVal;
             }
-            return newVal < node.val;
+            return node.val >= newVal;
         });
 
         if (insertionPoint != nodeList_.rend() && insertionPoint->val == newVal) {
@@ -346,73 +365,6 @@ typename priority_map<KeyType, ValType, Compare, Hash>::Proxy priority_map<KeyTy
         insert(key, 0);
     }
     return Proxy(this, key);
-}
-
-// Implementations of Proxy methods
-template<
-    typename KeyType,
-    typename ValType,
-    typename Compare,
-    typename Hash
->
-typename priority_map<KeyType, ValType, Compare, Hash>::Proxy& priority_map<KeyType, ValType, Compare, Hash>::Proxy::operator++() {
-    pm->update(key, pm->getVal(key)+1);
-    return *this;
-}
-
-template<
-    typename KeyType,
-    typename ValType,
-    typename Compare,
-    typename Hash
->
-typename priority_map<KeyType, ValType, Compare, Hash>::Proxy priority_map<KeyType, ValType, Compare, Hash>::Proxy::operator++(int) {
-    Proxy temp = *this;
-    ++(*this);
-    return temp;
-}
-
-template<
-    typename KeyType,
-    typename ValType,
-    typename Compare,
-    typename Hash
->
-typename priority_map<KeyType, ValType, Compare, Hash>::Proxy& priority_map<KeyType, ValType, Compare, Hash>::Proxy::operator--() {
-    pm->update(key, pm->getVal(key)-1);
-    return *this;
-}
-
-template<
-    typename KeyType,
-    typename ValType,
-    typename Compare,
-    typename Hash
->
-typename priority_map<KeyType, ValType, Compare, Hash>::Proxy priority_map<KeyType, ValType, Compare, Hash>::Proxy::operator--(int) {
-    Proxy temp = *this;
-    --(*this);
-    return temp;
-}
-
-template<
-    typename KeyType,
-    typename ValType,
-    typename Compare,
-    typename Hash
->
-void priority_map<KeyType, ValType, Compare, Hash>::Proxy::operator=(const ValType& val) {
-    pm->update(key, val);
-}
-
-template<
-    typename KeyType,
-    typename ValType,
-    typename Compare,
-    typename Hash
->
-priority_map<KeyType, ValType, Compare, Hash>::Proxy::operator ValType() const {
-    return pm->getVal(key);
 }
 
 } // namespace
