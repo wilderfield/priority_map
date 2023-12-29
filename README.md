@@ -34,7 +34,7 @@ int main() {
 }
 ```
 
-# Example Application
+# example application
 
 Below is an example application illustrating topological sort with Khan's algorithm and a priority map:
 
