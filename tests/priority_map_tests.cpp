@@ -13,10 +13,12 @@ TEST_CASE("PriorityMap operations are tested", "[priority_map]") {
 
     wilderfield::priority_map<int, int> pmap;
 
-    SECTION("Checking empty()") {
+    SECTION("Checking empty() and erase()") {
         REQUIRE(pmap.empty());
         ++pmap[7];
         REQUIRE(!pmap.empty());
+        pmap.erase(7);
+        REQUIRE(pmap.empty());
     }
 
     SECTION("Checking size()") {

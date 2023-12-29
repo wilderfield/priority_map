@@ -68,11 +68,16 @@ private:
 
 public:
 
-    size_t size() const; ///< Returns the number of unique keys in the priority map.
-    bool empty() const; ///< Checks whether the priority map is empty.
-    size_t count(const KeyType& key) const; ///< Returns the count of a particular key in the map.
+    size_t size() const { return keyToNode_.size(); } ///< Returns the number of unique keys in the priority map.
+    
+    bool empty() const { return keyToNode_.empty(); } ///< Checks whether the priority map is empty.
+    
+    size_t count(const KeyType& key) const { return keyToNode_.count(key); } ///< Returns the count of a particular key in the map.
+    
     std::pair<KeyType, ValType> top() const; ///< Returns the top element (key-value pair) in the priority map.
-
+    
+    size_t erase(const KeyType& key); ///< Erases key from the priority map. Returns the number of elements removed (0 or 1).
+    
     void pop(); ///< Removes the top element from the priority map.
 
     class Proxy;
@@ -117,7 +122,7 @@ public:
 
 };
 
-// Implementation of priority_map methods
+// Out-of-line implementation of priority_map methods
 
 template<
     typename KeyType,
@@ -125,28 +130,15 @@ template<
     typename Compare,
     typename Hash
 >
-size_t priority_map<KeyType, ValType, Compare, Hash>::size() const {
-  return keyToNode_.size();
-}
-
-template<
-    typename KeyType,
-    typename ValType,
-    typename Compare,
-    typename Hash
->
-bool priority_map<KeyType, ValType, Compare, Hash>::empty() const {
-  return keyToNode_.empty();
-}
-
-template<
-    typename KeyType,
-    typename ValType,
-    typename Compare,
-    typename Hash
->
-size_t priority_map<KeyType, ValType, Compare, Hash>::count(const KeyType& key) const {
-    return keyToNode_.count(key);
+size_t priority_map<KeyType, ValType, Compare, Hash>::erase(const KeyType& key) {
+    if (keyToNode_.find(key) != keyToNode_.end()) {
+        auto oldIt = keyToNode_[key];
+        oldIt->keys.erase(key);
+        if (oldIt->keys.empty()) {
+            nodeList_.erase(oldIt);
+        }
+    }
+    return keyToNode_.erase(key);
 }
 
 template<
@@ -203,13 +195,6 @@ template<
 void priority_map<KeyType, ValType, Compare, Hash>::insert(const KeyType& key, const ValType& newVal) {
 
     if (keyToNode_.find(key) == keyToNode_.end()) {
-
-        // Scenarios:
-        // MinHeap std::less:
-        //   search from begin() towards end for node.val >= 0
-
-        // MaxHeap std::greater:
-        //   search from end() towards begin for node.val >= 0
 
         // True if minHeap
         if (comp_(0, 1)) {
@@ -273,15 +258,6 @@ void priority_map<KeyType, ValType, Compare, Hash>::update(const KeyType& key, c
     // Remove the key from the old association
     oldIt->keys.erase(key);
     keyToNode_.erase(key);
-
-    // Scenarios:
-    // MinHeap std::less:
-    //     oldVal < newVal, search from nodeIt towards end for newVal < node.val
-    //     oldVal > newVal, search from nodeIt towards begin for newVal > node.val
-
-    // MaxHeap std::greater:
-    //     oldVal > newVal, search from nodeIt towards end for newVal > node.val
-    //     olVal < newVal, search from nodeIt towards begin for newVal < node.val
 
     // True if minHeap and oldVal < newVal or if maxHeap and oldVal > newVal
     if (comp_(oldVal, newVal)) {
