@@ -7,6 +7,7 @@ if(DOXYGEN_FOUND)
 
     set(DOXYGEN_INPUT_DIR "${PROJECT_SOURCE_DIR}/include/wilderfield")
     set(DOXYGEN_PROJECT_NAME "${PROJECT_NAME}")
+    set(README "${PROJECT_SOURCE_DIR}/README.md")
 
     # request to configure the file
     configure_file(${DOXYGEN_IN} ${DOXYGEN_OUT} @ONLY)
