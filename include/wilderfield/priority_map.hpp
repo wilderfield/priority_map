@@ -37,7 +37,7 @@ template<
     typename Compare = std::greater<ValType>,
     typename Hash = std::hash<KeyType>
 >
-class priority_map {
+class priority_map final {
 
 static_assert(std::is_arithmetic<ValType>::value, "ValType must be a numeric type.");
 
