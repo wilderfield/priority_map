@@ -19,12 +19,27 @@ FetchContent_MakeAvailable(Catch2)
 
 list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/contrib)
 
+# Declare Google Benchmark
+FetchContent_Declare(
+  benchmark
+  GIT_REPOSITORY https://github.com/google/benchmark.git
+  GIT_TAG main  # Optionally specify a version tag or commit
+)
+
+# Configure Google Benchmark
+# Set this to disable tests and other unnecessary parts of the benchmark library
+set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "Disable benchmark testing as we don't need it.")
+
+FetchContent_MakeAvailable(benchmark)
+
 # Include directories
 include_directories(include)
 
 # Enable testing and add the subdirectory containing tests
 enable_testing()
 add_subdirectory(tests)
+
+add_subdirectory(benchmark)
 
 # Build documentation
 add_subdirectory(docs)

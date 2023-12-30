@@ -76,13 +76,15 @@ std::vector<int> topSort(std::vector<std::vector<int>>& graph) {
 }
 ```
 
-# build and test
+# build, test, benchmark
+Typical CMake build, tune commands to your platform/generator
 ```
 mkdir build
 cd build
-cmake ..
-cmake —-build . —-config Release
+cmake -DCMAKE_BUILD_TYPE=Release ..
+cmake —-build .
 ./tests/priority_map_test -s
+./benchmark/run_benchmarking
 ```
 
 # documentation 
