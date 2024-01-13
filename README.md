@@ -76,7 +76,7 @@ std::vector<int> topSort(std::vector<std::vector<int>>& graph) {
 }
 ```
 
-# build, test, benchmark
+# build, test, benchmark, install
 Typical CMake build, tune commands to your platform/generator
 ```
 mkdir build
@@ -85,6 +85,7 @@ cmake -DCMAKE_BUILD_TYPE=Release ..
 cmake —-build .
 ./tests/priority_map_test -s
 ./benchmark/run_benchmarking
+cmake --install .
 ```
 
 # documentation 
