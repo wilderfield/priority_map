@@ -1,3 +1,0 @@
-/Users/vatsal/Desktop/git/priority_map/build/_deps/catch2-subbuild/CMakeFiles/catch2-populate.dir
-/Users/vatsal/Desktop/git/priority_map/build/_deps/catch2-subbuild/CMakeFiles/edit_cache.dir
-/Users/vatsal/Desktop/git/priority_map/build/_deps/catch2-subbuild/CMakeFiles/rebuild_cache.dir
