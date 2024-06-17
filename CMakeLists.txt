@@ -14,23 +14,26 @@ FetchContent_Declare(
   GIT_REPOSITORY https://github.com/catchorg/Catch2.git
   GIT_TAG v2.13.7 # Adjust the version as needed
 )
-
 FetchContent_MakeAvailable(Catch2)
-
 list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/contrib)
 
-# Declare Google Benchmark
-FetchContent_Declare(
-  benchmark
-  GIT_REPOSITORY https://github.com/google/benchmark.git
-  GIT_TAG main  # Optionally specify a version tag or commit
-)
+# Option to build benchmarks
+option(BUILD_BENCHMARKS "Build benchmarks" OFF)
 
-# Configure Google Benchmark
-# Set this to disable tests and other unnecessary parts of the benchmark library
-set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "Disable benchmark testing as we don't need it.")
+if(BUILD_BENCHMARKS)
+    # Declare and fetch Google Benchmark
+    FetchContent_Declare(
+      benchmark
+      GIT_REPOSITORY https://github.com/google/benchmark.git
+      GIT_TAG main  # Optionally specify a version tag or commit
+    )
+    # Disable testing parts of Google Benchmark
+    set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "Disable benchmark testing as we don't need it.")
+    FetchContent_MakeAvailable(benchmark)
 
-FetchContent_MakeAvailable(benchmark)
+    # Add the benchmark directory
+    add_subdirectory(benchmark)
+endif()
 
 # Include directories
 include_directories(include)
@@ -38,8 +41,6 @@ include_directories(include)
 # Enable testing and add the subdirectory containing tests
 enable_testing()
 add_subdirectory(tests)
-
-add_subdirectory(benchmark)
 
 # Build documentation
 add_subdirectory(docs)
