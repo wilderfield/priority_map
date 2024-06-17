@@ -1,0 +1,315 @@
+\doxysection{priority\+\_\+map.\+hpp}
+\hypertarget{priority__map_8hpp_source}{}\label{priority__map_8hpp_source}\index{/Users/vatsal/Desktop/git/priority\_map/include/wilderfield/priority\_map.hpp@{/Users/vatsal/Desktop/git/priority\_map/include/wilderfield/priority\_map.hpp}}
+\mbox{\hyperlink{priority__map_8hpp}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ }
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#ifndef\ WILDERFIELD\_PRIORITY\_MAP\_HPP}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#define\ WILDERFIELD\_PRIORITY\_MAP\_HPP}}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#include\ <unordered\_map>}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ <list>}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#include\ <unordered\_set>}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#include\ <iterator>}}
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#include\ <functional>}}
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#include\ <type\_traits>}}
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#include\ <algorithm>}}
+\DoxyCodeLine{00019\ }
+\DoxyCodeLine{00020\ \textcolor{keyword}{namespace\ }wilderfield\ \{}
+\DoxyCodeLine{00021\ }
+\DoxyCodeLine{00034\ \textcolor{keyword}{template}<}
+\DoxyCodeLine{00035\ \ \ \ \ \textcolor{keyword}{typename}\ KeyType,}
+\DoxyCodeLine{00036\ \ \ \ \ \textcolor{keyword}{typename}\ ValType,}
+\DoxyCodeLine{00037\ \ \ \ \ \textcolor{keyword}{typename}\ Compare\ =\ std::greater<ValType>,}
+\DoxyCodeLine{00038\ \ \ \ \ \textcolor{keyword}{typename}\ Hash\ =\ std::hash<KeyType>}
+\DoxyCodeLine{00039\ >}
+\DoxyCodeLine{00040\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classwilderfield_1_1priority__map}{priority\_map}}\ final\ \{}
+\DoxyCodeLine{00041\ }
+\DoxyCodeLine{00042\ \textcolor{keyword}{static\_assert}(std::is\_arithmetic<ValType>::value,\ \textcolor{stringliteral}{"{}ValType\ must\ be\ a\ numeric\ type."{}});}
+\DoxyCodeLine{00043\ }
+\DoxyCodeLine{00044\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00045\ \ \ \ \ Compare\ comp\_;}
+\DoxyCodeLine{00046\ }
+\DoxyCodeLine{00047\ \ \ \ \ std::list<ValType>\ vals\_;\ }
+\DoxyCodeLine{00048\ }
+\DoxyCodeLine{00049\ \ \ \ \ std::unordered\_map<KeyType,\ typename\ std::list<ValType>::iterator,\ Hash>\ keys\_;\ }
+\DoxyCodeLine{00050\ }
+\DoxyCodeLine{00051\ \ \ \ \ std::unordered\_map<ValType,\ std::unordered\_set<KeyType>>\ valToKeys\_;\ }
+\DoxyCodeLine{00052\ }
+\DoxyCodeLine{00053\ \ \ \ \ \textcolor{comment}{//\ Private\ member\ functions}}
+\DoxyCodeLine{00054\ }
+\DoxyCodeLine{00055\ \ \ \ \ \textcolor{comment}{//\ Insert\ new\ key}}
+\DoxyCodeLine{00056\ \ \ \ \ \textcolor{keywordtype}{void}\ insert(\textcolor{keyword}{const}\ KeyType\&\ key,\ \textcolor{keyword}{const}\ ValType\&\ newVal);}
+\DoxyCodeLine{00057\ }
+\DoxyCodeLine{00058\ \ \ \ \ \textcolor{comment}{//\ Update\ Key\ with\ Val}}
+\DoxyCodeLine{00059\ \ \ \ \ \textcolor{comment}{//\ This\ function\ can\ be\ used\ for\ increment,\ decrement,\ or\ assigning\ a\ new\ val}}
+\DoxyCodeLine{00060\ \ \ \ \ \textcolor{keywordtype}{void}\ update(\textcolor{keyword}{const}\ KeyType\&\ key,\ \textcolor{keyword}{const}\ ValType\&\ newVal);}
+\DoxyCodeLine{00061\ }
+\DoxyCodeLine{00062\ \ \ \ \ \textcolor{comment}{//\ Get\ the\ value\ associated\ with\ a\ key.}}
+\DoxyCodeLine{00063\ \ \ \ \ ValType\ getVal(\textcolor{keyword}{const}\ KeyType\&\ key)\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ *(keys\_.at(key));\ \}}
+\DoxyCodeLine{00064\ }
+\DoxyCodeLine{00065\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00066\ }
+\DoxyCodeLine{00067\ \ \ \ \ \textcolor{keywordtype}{size\_t}\ \mbox{\hyperlink{classwilderfield_1_1priority__map_aef644909cdc08ec9a12a3acc8c5a4b26}{size}}()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ keys\_.size();\ \}\ }
+\DoxyCodeLine{00068\ }
+\DoxyCodeLine{00069\ \ \ \ \ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{classwilderfield_1_1priority__map_a2d074cd584887160d7287ae7f9d1cad2}{empty}}()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ keys\_.empty();\ \}\ }
+\DoxyCodeLine{00070\ }
+\DoxyCodeLine{00071\ \ \ \ \ \textcolor{keywordtype}{size\_t}\ \mbox{\hyperlink{classwilderfield_1_1priority__map_a73441fdc43ca88f74c05233b9f4a37b9}{count}}(\textcolor{keyword}{const}\ KeyType\&\ key)\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ keys\_.count(key);\ \}\ }
+\DoxyCodeLine{00072\ }
+\DoxyCodeLine{00073\ \ \ \ \ std::pair<KeyType,\ ValType>\ \mbox{\hyperlink{classwilderfield_1_1priority__map_aa9f78cd8ee51f450edae6ca99620b54a}{top}}()\ \textcolor{keyword}{const};\ }
+\DoxyCodeLine{00074\ }
+\DoxyCodeLine{00075\ \ \ \ \ \textcolor{keywordtype}{size\_t}\ \mbox{\hyperlink{classwilderfield_1_1priority__map_aeb9fb84b6c97e653ba7896a4d7629d8f}{erase}}(\textcolor{keyword}{const}\ KeyType\&\ key);\ }
+\DoxyCodeLine{00076\ }
+\DoxyCodeLine{00077\ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{classwilderfield_1_1priority__map_aa3d389447917f70fa0d51660f3846c12}{pop}}();\ }
+\DoxyCodeLine{00078\ }
+\DoxyCodeLine{00079\ \ \ \ \ \textcolor{keyword}{class\ }Proxy;}
+\DoxyCodeLine{00080\ \ \ \ \ Proxy\ operator[](\textcolor{keyword}{const}\ KeyType\&\ key);}
+\DoxyCodeLine{00081\ }
+\DoxyCodeLine{00082\ \ \ \ \ \textcolor{comment}{//\ Proxy\ class\ to\ handle\ the\ increment\ operation.}}
+\DoxyCodeLine{00083\ \ \ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classwilderfield_1_1priority__map_1_1_proxy}{Proxy}}\ \{}
+\DoxyCodeLine{00084\ \ \ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00085\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classwilderfield_1_1priority__map}{priority\_map}}*\ pm;}
+\DoxyCodeLine{00086\ \ \ \ \ \ \ \ \ KeyType\ key;}
+\DoxyCodeLine{00087\ }
+\DoxyCodeLine{00088\ \ \ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00089\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classwilderfield_1_1priority__map_1_1_proxy}{Proxy}}(\mbox{\hyperlink{classwilderfield_1_1priority__map}{priority\_map}}*\ pm,\ \textcolor{keyword}{const}\ KeyType\&\ key)\ :\ pm(pm),\ key(key)\ \{\}}
+\DoxyCodeLine{00090\ }
+\DoxyCodeLine{00091\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classwilderfield_1_1priority__map_1_1_proxy}{Proxy}}\&\ operator++()\ \{}
+\DoxyCodeLine{00092\ \ \ \ \ \ \ \ \ \ \ \ \ pm-\/>update(key,\ pm-\/>getVal(key)+1);}
+\DoxyCodeLine{00093\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00094\ }
+\DoxyCodeLine{00095\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00096\ }
+\DoxyCodeLine{00097\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classwilderfield_1_1priority__map_1_1_proxy}{Proxy}}\ operator++(\textcolor{keywordtype}{int})\ \{}
+\DoxyCodeLine{00098\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classwilderfield_1_1priority__map_1_1_proxy}{Proxy}}\ temp\ =\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00099\ \ \ \ \ \ \ \ \ \ \ \ \ ++(*this);}
+\DoxyCodeLine{00100\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ temp;}
+\DoxyCodeLine{00101\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00102\ }
+\DoxyCodeLine{00103\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classwilderfield_1_1priority__map_1_1_proxy}{Proxy}}\&\ operator-\/-\/()\ \{}
+\DoxyCodeLine{00104\ \ \ \ \ \ \ \ \ \ \ \ \ pm-\/>update(key,\ pm-\/>getVal(key)-\/1);}
+\DoxyCodeLine{00105\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00106\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00107\ }
+\DoxyCodeLine{00108\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classwilderfield_1_1priority__map_1_1_proxy}{Proxy}}\ operator-\/-\/(\textcolor{keywordtype}{int})\ \{}
+\DoxyCodeLine{00109\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classwilderfield_1_1priority__map_1_1_proxy}{Proxy}}\ temp\ =\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00110\ \ \ \ \ \ \ \ \ \ \ \ \ -\/-\/(*this);}
+\DoxyCodeLine{00111\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ temp;}
+\DoxyCodeLine{00112\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00113\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00114\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ operator=(\textcolor{keyword}{const}\ ValType\&\ val)\ \{pm-\/>update(key,\ val);\}}
+\DoxyCodeLine{00115\ }
+\DoxyCodeLine{00116\ \ \ \ \ \ \ \ \ \textcolor{keyword}{operator}\ ValType()\textcolor{keyword}{\ const\ }\{\textcolor{keywordflow}{return}\ pm-\/>getVal(key);\}}
+\DoxyCodeLine{00117\ \ \ \ \ \};}
+\DoxyCodeLine{00118\ }
+\DoxyCodeLine{00119\ \};}
+\DoxyCodeLine{00120\ }
+\DoxyCodeLine{00121\ \textcolor{comment}{//\ Out-\/of-\/line\ implementation\ of\ priority\_map\ methods}}
+\DoxyCodeLine{00122\ }
+\DoxyCodeLine{00123\ \textcolor{keyword}{template}<}
+\DoxyCodeLine{00124\ \ \ \ \ \textcolor{keyword}{typename}\ KeyType,}
+\DoxyCodeLine{00125\ \ \ \ \ \textcolor{keyword}{typename}\ ValType,}
+\DoxyCodeLine{00126\ \ \ \ \ \textcolor{keyword}{typename}\ Compare,}
+\DoxyCodeLine{00127\ \ \ \ \ \textcolor{keyword}{typename}\ Hash}
+\DoxyCodeLine{00128\ >}
+\DoxyCodeLine{00129\ \textcolor{keywordtype}{size\_t}\ \mbox{\hyperlink{classwilderfield_1_1priority__map_aeb9fb84b6c97e653ba7896a4d7629d8f}{priority\_map<KeyType,\ ValType,\ Compare,\ Hash>::erase}}(\textcolor{keyword}{const}\ KeyType\&\ key)\ \{}
+\DoxyCodeLine{00130\ \ \ \ \ \textcolor{keywordflow}{if}\ (keys\_.find(key)\ !=\ keys\_.end())\ \{}
+\DoxyCodeLine{00131\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ oldIt\ =\ keys\_[key];}
+\DoxyCodeLine{00132\ \ \ \ \ \ \ \ \ valToKeys\_[*oldIt].erase(key);}
+\DoxyCodeLine{00133\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (valToKeys\_[*oldIt].empty())\ \{}
+\DoxyCodeLine{00134\ \ \ \ \ \ \ \ \ \ \ \ \ valToKeys\_.erase(*oldIt);\ \textcolor{comment}{//\ For\ now\ avoid\ memory\ bloat}}
+\DoxyCodeLine{00135\ \ \ \ \ \ \ \ \ \ \ \ \ vals\_.erase(oldIt);}
+\DoxyCodeLine{00136\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00137\ \ \ \ \ \}}
+\DoxyCodeLine{00138\ \ \ \ \ \textcolor{keywordflow}{return}\ keys\_.erase(key);}
+\DoxyCodeLine{00139\ \}}
+\DoxyCodeLine{00140\ }
+\DoxyCodeLine{00141\ \textcolor{keyword}{template}<}
+\DoxyCodeLine{00142\ \ \ \ \ \textcolor{keyword}{typename}\ KeyType,}
+\DoxyCodeLine{00143\ \ \ \ \ \textcolor{keyword}{typename}\ ValType,}
+\DoxyCodeLine{00144\ \ \ \ \ \textcolor{keyword}{typename}\ Compare,}
+\DoxyCodeLine{00145\ \ \ \ \ \textcolor{keyword}{typename}\ Hash}
+\DoxyCodeLine{00146\ >}
+\DoxyCodeLine{00147\ std::pair<KeyType,\ ValType>\ \mbox{\hyperlink{classwilderfield_1_1priority__map_aa9f78cd8ee51f450edae6ca99620b54a}{priority\_map<KeyType,\ ValType,\ Compare,\ Hash>::top}}()\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00148\ \ \ \ \ \textcolor{keywordflow}{if}\ (vals\_.empty())\ \{}
+\DoxyCodeLine{00149\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{throw}\ std::out\_of\_range(\textcolor{stringliteral}{"{}Can't\ access\ top\ on\ an\ empty\ priority\_map."{}});}
+\DoxyCodeLine{00150\ \ \ \ \ \}}
+\DoxyCodeLine{00151\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{auto}\ val\ =\ vals\_.front();}
+\DoxyCodeLine{00152\ \ \ \ \ \textcolor{keywordflow}{if}\ (valToKeys\_.at(val).empty())\ \{}
+\DoxyCodeLine{00153\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{throw}\ std::logic\_error(\textcolor{stringliteral}{"{}Inconsistent\ state:\ Val\ with\ no\ keys."{}});}
+\DoxyCodeLine{00154\ \ \ \ \ \}}
+\DoxyCodeLine{00155\ \ \ \ \ \textcolor{comment}{//\ Return\ a\ pair\ consisting\ of\ one\ of\ the\ keys\ and\ the\ value.}}
+\DoxyCodeLine{00156\ \ \ \ \ \textcolor{keywordflow}{return}\ \{*(valToKeys\_.at(val).begin()),\ val\};}
+\DoxyCodeLine{00157\ \}}
+\DoxyCodeLine{00158\ }
+\DoxyCodeLine{00159\ \textcolor{keyword}{template}<}
+\DoxyCodeLine{00160\ \ \ \ \ \textcolor{keyword}{typename}\ KeyType,}
+\DoxyCodeLine{00161\ \ \ \ \ \textcolor{keyword}{typename}\ ValType,}
+\DoxyCodeLine{00162\ \ \ \ \ \textcolor{keyword}{typename}\ Compare,}
+\DoxyCodeLine{00163\ \ \ \ \ \textcolor{keyword}{typename}\ Hash}
+\DoxyCodeLine{00164\ >}
+\DoxyCodeLine{00165\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{classwilderfield_1_1priority__map_aa3d389447917f70fa0d51660f3846c12}{priority\_map<KeyType,\ ValType,\ Compare,\ Hash>::pop}}()\ \{}
+\DoxyCodeLine{00166\ \ \ \ \ \textcolor{keywordflow}{if}\ (vals\_.empty())\ \{}
+\DoxyCodeLine{00167\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{throw}\ std::out\_of\_range(\textcolor{stringliteral}{"{}Can't\ pop\ from\ empty\ priority\_map."{}});}
+\DoxyCodeLine{00168\ \ \ \ \ \}}
+\DoxyCodeLine{00169\ }
+\DoxyCodeLine{00170\ \ \ \ \ \textcolor{keyword}{auto}\ oldIt\ =\ vals\_.begin();}
+\DoxyCodeLine{00171\ \ \ \ \ \textcolor{keywordflow}{if}\ (valToKeys\_[*oldIt].empty())\ \{}
+\DoxyCodeLine{00172\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{throw}\ std::logic\_error(\textcolor{stringliteral}{"{}Inconsistent\ state:\ Val\ with\ no\ keys."{}});}
+\DoxyCodeLine{00173\ \ \ \ \ \}}
+\DoxyCodeLine{00174\ \ \ \ \ KeyType\ key\ =\ *(valToKeys\_[*oldIt].begin());}
+\DoxyCodeLine{00175\ }
+\DoxyCodeLine{00176\ \ \ \ \ valToKeys\_[*oldIt].erase(key);}
+\DoxyCodeLine{00177\ \ \ \ \ keys\_.erase(key);}
+\DoxyCodeLine{00178\ }
+\DoxyCodeLine{00179\ \ \ \ \ \textcolor{comment}{//\ Remove\ node\ if\ it's\ empty}}
+\DoxyCodeLine{00180\ \ \ \ \ \textcolor{keywordflow}{if}\ (valToKeys\_[*oldIt].empty())\ \{}
+\DoxyCodeLine{00181\ \ \ \ \ \ \ \ \ valToKeys\_.erase(*oldIt);\ \textcolor{comment}{//\ For\ now\ avoid\ memory\ bloat}}
+\DoxyCodeLine{00182\ \ \ \ \ \ \ \ \ vals\_.erase(oldIt);}
+\DoxyCodeLine{00183\ \ \ \ \ \}}
+\DoxyCodeLine{00184\ \}}
+\DoxyCodeLine{00185\ }
+\DoxyCodeLine{00186\ \textcolor{keyword}{template}<}
+\DoxyCodeLine{00187\ \ \ \ \ \textcolor{keyword}{typename}\ KeyType,}
+\DoxyCodeLine{00188\ \ \ \ \ \textcolor{keyword}{typename}\ ValType,}
+\DoxyCodeLine{00189\ \ \ \ \ \textcolor{keyword}{typename}\ Compare,}
+\DoxyCodeLine{00190\ \ \ \ \ \textcolor{keyword}{typename}\ Hash}
+\DoxyCodeLine{00191\ >}
+\DoxyCodeLine{00192\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{classwilderfield_1_1priority__map}{priority\_map<KeyType,\ ValType,\ Compare,\ Hash>::insert}}(\textcolor{keyword}{const}\ KeyType\&\ key,\ \textcolor{keyword}{const}\ ValType\&\ newVal)\ \{}
+\DoxyCodeLine{00193\ }
+\DoxyCodeLine{00194\ \ \ \ \ \textcolor{keywordflow}{if}\ (keys\_.find(key)\ ==\ keys\_.end())\ \{}
+\DoxyCodeLine{00195\ }
+\DoxyCodeLine{00196\ \ \ \ \ \ \ \ \ valToKeys\_[0].insert(key);}
+\DoxyCodeLine{00197\ }
+\DoxyCodeLine{00198\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ True\ if\ minHeap}}
+\DoxyCodeLine{00199\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (comp\_(0,\ 1))\ \{}
+\DoxyCodeLine{00200\ }
+\DoxyCodeLine{00201\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Linear\ search\ towards\ end}}
+\DoxyCodeLine{00202\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ insertionPoint\ =\ std::find\_if(vals\_.begin(),\ vals\_.end(),}
+\DoxyCodeLine{00203\ \ \ \ \ \ \ \ \ \ \ \ \ [\&](\textcolor{keyword}{const}\ \textcolor{keyword}{auto}\ val)\ \{}
+\DoxyCodeLine{00204\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ return\ val\ >=\ 0;}
+\DoxyCodeLine{00205\ \ \ \ \ \ \ \ \ \ \ \ \ \});}
+\DoxyCodeLine{00206\ }
+\DoxyCodeLine{00207\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (insertionPoint\ ==\ vals\_.end()\ ||\ (*insertionPoint)\ !=\ 0)\ \{}
+\DoxyCodeLine{00208\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ insertionPoint\ =\ vals\_.insert(insertionPoint,\ 0);}
+\DoxyCodeLine{00209\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00210\ }
+\DoxyCodeLine{00211\ \ \ \ \ \ \ \ \ \ \ \ \ keys\_[key]\ =\ insertionPoint;}
+\DoxyCodeLine{00212\ }
+\DoxyCodeLine{00213\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00214\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ maxHeap}}
+\DoxyCodeLine{00215\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00216\ }
+\DoxyCodeLine{00217\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Linear\ search\ towards\ begin}}
+\DoxyCodeLine{00218\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ insertionPoint\ =\ std::find\_if(vals\_.rbegin(),\ vals\_.rend(),}
+\DoxyCodeLine{00219\ \ \ \ \ \ \ \ \ \ \ \ \ [\&](\textcolor{keyword}{const}\ \textcolor{keyword}{auto}\ val)\ \{}
+\DoxyCodeLine{00220\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ return\ val\ >=\ 0;}
+\DoxyCodeLine{00221\ \ \ \ \ \ \ \ \ \ \ \ \ \});}
+\DoxyCodeLine{00222\ }
+\DoxyCodeLine{00223\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (insertionPoint\ ==\ vals\_.rend()\ ||\ (*insertionPoint)\ !=\ 0)\ \{}
+\DoxyCodeLine{00224\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ newIt\ =\ vals\_.insert(insertionPoint.base(),\ 0);}
+\DoxyCodeLine{00225\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ keys\_[key]\ =\ newIt;}
+\DoxyCodeLine{00226\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00227\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00228\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ keys\_[key]\ =\ std::next(insertionPoint).base();}
+\DoxyCodeLine{00229\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00230\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00231\ }
+\DoxyCodeLine{00232\ \ \ \ \ \}}
+\DoxyCodeLine{00233\ }
+\DoxyCodeLine{00234\ \ \ \ \ update(key,\ newVal);}
+\DoxyCodeLine{00235\ }
+\DoxyCodeLine{00236\ \}}
+\DoxyCodeLine{00237\ }
+\DoxyCodeLine{00238\ \textcolor{keyword}{template}<}
+\DoxyCodeLine{00239\ \ \ \ \ \textcolor{keyword}{typename}\ KeyType,}
+\DoxyCodeLine{00240\ \ \ \ \ \textcolor{keyword}{typename}\ ValType,}
+\DoxyCodeLine{00241\ \ \ \ \ \textcolor{keyword}{typename}\ Compare,}
+\DoxyCodeLine{00242\ \ \ \ \ \textcolor{keyword}{typename}\ Hash}
+\DoxyCodeLine{00243\ >}
+\DoxyCodeLine{00244\ \textcolor{keywordtype}{void}\ priority\_map<KeyType,\ ValType,\ Compare,\ Hash>::update(\textcolor{keyword}{const}\ KeyType\&\ key,\ \textcolor{keyword}{const}\ ValType\&\ newVal)\ \{}
+\DoxyCodeLine{00245\ }
+\DoxyCodeLine{00246\ \ \ \ \ \textcolor{keyword}{auto}\ oldIt\ =\ keys\_[key];}
+\DoxyCodeLine{00247\ }
+\DoxyCodeLine{00248\ \ \ \ \ \textcolor{comment}{//\ Save\ Old\ Value}}
+\DoxyCodeLine{00249\ \ \ \ \ ValType\ oldVal\ =\ *oldIt;}
+\DoxyCodeLine{00250\ }
+\DoxyCodeLine{00251\ \ \ \ \ \textcolor{keywordflow}{if}\ (oldVal\ ==\ newVal)\ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00252\ }
+\DoxyCodeLine{00253\ \ \ \ \ \textcolor{comment}{//\ Remove\ the\ key\ from\ the\ old\ association}}
+\DoxyCodeLine{00254\ \ \ \ \ keys\_.erase(key);}
+\DoxyCodeLine{00255\ \ \ \ \ valToKeys\_[oldVal].erase(key);}
+\DoxyCodeLine{00256\ }
+\DoxyCodeLine{00257\ \ \ \ \ \textcolor{comment}{//\ Make\ new\ association}}
+\DoxyCodeLine{00258\ \ \ \ \ valToKeys\_[newVal].insert(key);}
+\DoxyCodeLine{00259\ }
+\DoxyCodeLine{00260\ \ \ \ \ \textcolor{comment}{//\ True\ if\ minHeap\ and\ oldVal\ <\ newVal\ or\ if\ maxHeap\ and\ oldVal\ >\ newVal}}
+\DoxyCodeLine{00261\ \ \ \ \ \textcolor{keywordflow}{if}\ (comp\_(oldVal,\ newVal))\ \{}
+\DoxyCodeLine{00262\ }
+\DoxyCodeLine{00263\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Linear\ search\ towards\ end}}
+\DoxyCodeLine{00264\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ insertionPoint\ =\ std::find\_if(oldIt,\ vals\_.end(),}
+\DoxyCodeLine{00265\ \ \ \ \ \ \ \ \ [\&](\textcolor{keyword}{const}\ \textcolor{keyword}{auto}\ val)\ \{}
+\DoxyCodeLine{00266\ \ \ \ \ \ \ \ \ \ \ \ \ if\ (comp\_(1,0))\ \{}
+\DoxyCodeLine{00267\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ return\ val\ <=\ newVal;}
+\DoxyCodeLine{00268\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00269\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ val\ >=\ newVal;}
+\DoxyCodeLine{00270\ \ \ \ \ \ \ \ \ \});}
+\DoxyCodeLine{00271\ }
+\DoxyCodeLine{00272\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (insertionPoint\ ==\ vals\_.end()\ ||\ (*insertionPoint)\ !=\ newVal)\ \{}
+\DoxyCodeLine{00273\ \ \ \ \ \ \ \ \ \ \ \ \ insertionPoint\ =\ vals\_.insert(insertionPoint,\ newVal);}
+\DoxyCodeLine{00274\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00275\ }
+\DoxyCodeLine{00276\ \ \ \ \ \ \ \ \ keys\_[key]\ =\ insertionPoint;}
+\DoxyCodeLine{00277\ }
+\DoxyCodeLine{00278\ \ \ \ \ \}}
+\DoxyCodeLine{00279\ \ \ \ \ \textcolor{comment}{//\ minHeap\ and\ oldVal\ >\ newVal\ or\ maxHeap\ and\ oldVal\ <\ newVal}}
+\DoxyCodeLine{00280\ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00281\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Need\ to\ search\ in\ reverse}}
+\DoxyCodeLine{00282\ \ \ \ \ \ \ \ \ \textcolor{keyword}{typename}\ std::list<ValType>::reverse\_iterator\ oldRit(oldIt);\ \textcolor{comment}{//\ oldRit\ will\ point\ one\ element\ closer\ to\ begin}}
+\DoxyCodeLine{00283\ }
+\DoxyCodeLine{00284\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Linear\ search\ towards\ begin}}
+\DoxyCodeLine{00285\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ insertionPoint\ =\ std::find\_if(oldRit,\ vals\_.rend(),}
+\DoxyCodeLine{00286\ \ \ \ \ \ \ \ \ [\&](\textcolor{keyword}{const}\ \textcolor{keyword}{auto}\ val)\ \{}
+\DoxyCodeLine{00287\ \ \ \ \ \ \ \ \ \ \ \ \ if\ (comp\_(0,1))\ \{}
+\DoxyCodeLine{00288\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ return\ val\ <=\ newVal;}
+\DoxyCodeLine{00289\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00290\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ val\ >=\ newVal;}
+\DoxyCodeLine{00291\ \ \ \ \ \ \ \ \ \});}
+\DoxyCodeLine{00292\ }
+\DoxyCodeLine{00293\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (insertionPoint\ ==\ vals\_.rend()\ ||\ (*insertionPoint)\ !=\ newVal)\ \{}
+\DoxyCodeLine{00294\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ newIt\ =\ vals\_.insert(insertionPoint.base(),\ newVal);}
+\DoxyCodeLine{00295\ \ \ \ \ \ \ \ \ \ \ \ \ keys\_[key]\ =\ newIt;}
+\DoxyCodeLine{00296\ \ \ \ \ \ \ \ \ \ \ \ \ keys\_[key]\ =\ std::next(insertionPoint).base();}
+\DoxyCodeLine{00297\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00298\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00299\ \ \ \ \ \ \ \ \ \ \ \ \ keys\_[key]\ =\ std::next(insertionPoint).base();}
+\DoxyCodeLine{00300\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00301\ \ \ \ \ \}}
+\DoxyCodeLine{00302\ }
+\DoxyCodeLine{00303\ \ \ \ \ \textcolor{comment}{//\ Remove\ the\ old\ node\ if\ it's\ empty}}
+\DoxyCodeLine{00304\ \ \ \ \ \textcolor{keywordflow}{if}\ (valToKeys\_[oldVal].empty())\ \{}
+\DoxyCodeLine{00305\ \ \ \ \ \ \ \ \ valToKeys\_.erase(*oldIt);\ \textcolor{comment}{//\ For\ now\ avoid\ memory\ bloat}}
+\DoxyCodeLine{00306\ \ \ \ \ \ \ \ \ vals\_.erase(oldIt);}
+\DoxyCodeLine{00307\ \ \ \ \ \}}
+\DoxyCodeLine{00308\ }
+\DoxyCodeLine{00309\ \}}
+\DoxyCodeLine{00310\ }
+\DoxyCodeLine{00311\ \textcolor{keyword}{template}<}
+\DoxyCodeLine{00312\ \ \ \ \ \textcolor{keyword}{typename}\ KeyType,}
+\DoxyCodeLine{00313\ \ \ \ \ \textcolor{keyword}{typename}\ ValType,}
+\DoxyCodeLine{00314\ \ \ \ \ \textcolor{keyword}{typename}\ Compare,}
+\DoxyCodeLine{00315\ \ \ \ \ \textcolor{keyword}{typename}\ Hash}
+\DoxyCodeLine{00316\ >}
+\DoxyCodeLine{00317\ \textcolor{keyword}{typename}\ priority\_map<KeyType,\ ValType,\ Compare,\ Hash>::Proxy\ priority\_map<KeyType,\ ValType,\ Compare,\ Hash>::operator[](\textcolor{keyword}{const}\ KeyType\&\ key)\ \{}
+\DoxyCodeLine{00318\ }
+\DoxyCodeLine{00319\ \ \ \ \ \textcolor{comment}{//\ If\ the\ key\ doesn't\ exist,\ create\ a\ new\ node\ with\ value\ 0}}
+\DoxyCodeLine{00320\ \ \ \ \ \textcolor{keywordflow}{if}\ (keys\_.find(key)\ ==\ keys\_.end())\ \{}
+\DoxyCodeLine{00321\ \ \ \ \ \ \ \ \ insert(key,\ 0);}
+\DoxyCodeLine{00322\ \ \ \ \ \}}
+\DoxyCodeLine{00323\ \ \ \ \ \textcolor{keywordflow}{return}\ Proxy(\textcolor{keyword}{this},\ key);}
+\DoxyCodeLine{00324\ \}}
+\DoxyCodeLine{00325\ }
+\DoxyCodeLine{00326\ \}\ \textcolor{comment}{//\ namespace}}
+\DoxyCodeLine{00327\ }
+\DoxyCodeLine{00328\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ WILDERFIELD\_PRIORITY\_MAP\_HPP}}
+
+\end{DoxyCode}
