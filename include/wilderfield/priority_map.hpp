@@ -16,6 +16,7 @@
 #include <functional>
 #include <type_traits>
 #include <algorithm>
+#include <stdexcept>
 
 namespace wilderfield {
 
@@ -71,7 +72,21 @@ public:
     size_t count(const KeyType& key) const { return keys_.count(key); } ///< Returns the count of a particular key in the map.
 
     std::pair<KeyType, ValType> top() const; ///< Returns the top element (key-value pair) in the priority map.
+    
+    /**
+     * Retrieves the priority value associated with a given key.
+     * @param key The key for which to retrieve the priority.
+     * @return The priority associated with the key.
+     * @throws std::out_of_range If the key does not exist in the map.
+    */
+    const ValType& at(const KeyType& key) const{
+        auto it = keys_.find(key);  // Check if key exists
+        if (it == keys_.end()) {
+            throw std::out_of_range("Key not found in priority_map");
+        }
+        return *(it->second);  // Dereference the iterator to the list to return the value
 
+    }
     size_t erase(const KeyType& key); ///< Erases key from the priority map. Returns the number of elements removed (0 or 1).
 
     void pop(); ///< Removes the top element from the priority map.
