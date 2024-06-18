@@ -21,16 +21,6 @@ list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/contrib)
 option(BUILD_BENCHMARKS "Build benchmarks" OFF)
 
 if(BUILD_BENCHMARKS)
-    # Declare and fetch Google Benchmark
-    FetchContent_Declare(
-      benchmark
-      GIT_REPOSITORY https://github.com/google/benchmark.git
-      GIT_TAG main  # Optionally specify a version tag or commit
-    )
-    # Disable testing parts of Google Benchmark
-    set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "Disable benchmark testing as we don't need it.")
-    FetchContent_MakeAvailable(benchmark)
-
     # Add the benchmark directory
     add_subdirectory(benchmark)
 endif()
@@ -49,7 +39,7 @@ include(GNUInstallDirs)
 
 # Create an interface target for header-only library
 add_library(${PROJECT_NAME} INTERFACE)
-target_include_directories(${PROJECT_NAME}
+target_include_directories(${PROJECT_NAME} 
   INTERFACE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}/>
