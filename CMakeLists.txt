@@ -21,7 +21,6 @@ list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/contrib)
 option(BUILD_BENCHMARKS "Build benchmarks" OFF)
 
 if(BUILD_BENCHMARKS)
-    # Add the benchmark directory
     add_subdirectory(benchmark)
 endif()
 
@@ -39,7 +38,7 @@ include(GNUInstallDirs)
 
 # Create an interface target for header-only library
 add_library(${PROJECT_NAME} INTERFACE)
-target_include_directories(${PROJECT_NAME} 
+target_include_directories(${PROJECT_NAME}
   INTERFACE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}/>
